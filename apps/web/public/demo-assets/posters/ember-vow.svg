@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="1600" viewBox="0 0 900 1600" role="img" aria-label="原创都市甜宠竖版海报">
+  <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff7a42"/><stop offset=".48" stop-color="#a72b56"/><stop offset="1" stop-color="#10121d"/></linearGradient><filter id="b"><feGaussianBlur stdDeviation="32"/></filter></defs>
+  <rect width="900" height="1600" fill="url(#g)"/>
+  <g filter="url(#b)" opacity=".7"><circle cx="230" cy="280" r="170" fill="#ffc08a"/><circle cx="660" cy="900" r="260" fill="#ff2d55"/></g>
+  <path d="M0 1190c210-80 390-90 565-20 130 52 234 42 335-12v442H0z" fill="#08090f" opacity=".78"/>
+  <path d="M315 360c0-90 62-156 138-156s138 66 138 156-62 180-138 180-138-90-138-180Z" fill="#fff" opacity=".1"/>
+  <path d="M210 585h486l78 566H132z" fill="#fff" opacity=".08"/>
+  <g opacity=".2" stroke="#fff" stroke-width="3"><path d="M170 250h560M205 312h420M172 1210h540"/></g>
+</svg>

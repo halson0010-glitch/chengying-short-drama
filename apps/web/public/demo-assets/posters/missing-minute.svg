@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="1600" viewBox="0 0 900 1600" role="img" aria-label="原创悬疑时间竖版海报">
+  <defs><linearGradient id="g" x1=".08" y1="0" x2=".9" y2="1"><stop offset="0" stop-color="#ff573b"/><stop offset=".42" stop-color="#692550"/><stop offset="1" stop-color="#071d36"/></linearGradient><filter id="b"><feGaussianBlur stdDeviation="36"/></filter></defs>
+  <rect width="900" height="1600" fill="url(#g)"/>
+  <circle cx="450" cy="520" r="255" fill="none" stroke="#fff" stroke-opacity=".15" stroke-width="22"/>
+  <path d="M450 330v205l130 88" stroke="#fff" stroke-opacity=".36" stroke-width="14" stroke-linecap="round" fill="none"/>
+  <g filter="url(#b)" opacity=".65"><circle cx="240" cy="330" r="180" fill="#ff9a3f"/><circle cx="670" cy="1040" r="240" fill="#3568ff"/></g>
+  <path d="M0 1162c240-90 426-70 610 10 132 58 210 42 290-22v450H0z" fill="#05070c" opacity=".76"/>
+  <g opacity=".2" stroke="#fff" stroke-width="3"><path d="M160 290h220M520 260h220M150 1228h560M214 1305h410"/></g>
+</svg>

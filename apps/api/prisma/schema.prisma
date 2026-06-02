@@ -1,0 +1,84 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Drama {
+  id             String    @id @default(cuid())
+  title          String
+  subtitle       String?
+  description    String
+  totalEpisodes  Int       @default(1)
+  category       String
+  background     String
+  theme          String
+  audience       String
+  tags           String
+  setting        String
+  cast           String
+  posterUrl      String?
+  coverUrl       String?
+  featured       Boolean   @default(false)
+  featuredOrder  Int?
+  visualTone     String?
+  aiPosterPrompt String?
+  aiHeroPrompt   String?
+  heat           String    @default("0万")
+  status         String    @default("draft")
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  episodes       Episode[]
+
+  @@index([status])
+  @@index([category])
+  @@index([theme])
+  @@index([background])
+  @@index([featured])
+  @@index([featuredOrder])
+  @@index([createdAt])
+  @@index([updatedAt])
+}
+
+model Episode {
+  id        String   @id @default(cuid())
+  dramaId   String
+  episode   Int
+  title     String?
+  videoUrl  String?
+  hlsUrl    String?
+  duration  Int?
+  isFree    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  drama     Drama    @relation(fields: [dramaId], references: [id], onDelete: Cascade)
+
+  @@unique([dramaId, episode])
+}
+
+model AnalyticsEvent {
+  id          String   @id @default(cuid())
+  event       String
+  anonymousId String?
+  sessionId   String?
+  path        String?
+  device      String?
+  payloadJson String?
+  createdAt   DateTime @default(now())
+
+  @@index([event])
+  @@index([anonymousId])
+  @@index([sessionId])
+  @@index([createdAt])
+}
+
+model AdminUser {
+  id           String   @id @default(cuid())
+  username     String   @unique
+  passwordHash String
+  role         String   @default("admin")
+  createdAt    DateTime @default(now())
+}

@@ -1,0 +1,245 @@
+{
+  "generatedAt": "2026-06-02T13:31:56.002Z",
+  "summary": {
+    "posters": 30,
+    "heroes": 5,
+    "failed": 0,
+    "fallbackOnly": true,
+    "attemptedOpenAI": false,
+    "usedOpenAI": false,
+    "requestedModel": "gpt-image-2",
+    "fallbackModel": "gpt-image-1",
+    "quality": "low",
+    "fallbackGenerated": 35,
+    "openaiGenerated": 0,
+    "existing": 0,
+    "requestedPosters": 30,
+    "requestedHeroes": 5,
+    "mockDramaCount": 24
+  },
+  "assets": {
+    "ember-vow": {
+      "title": "暮色签收",
+      "poster": "/demo-assets/posters/ember-vow.png",
+      "posterSource": "local-fallback",
+      "posterIsExtra": false,
+      "hero": "/demo-assets/hero/ember-vow.png",
+      "heroSource": "local-fallback"
+    },
+    "midnight-bloom": {
+      "title": "零点花讯",
+      "poster": "/demo-assets/posters/midnight-bloom.png",
+      "posterSource": "local-fallback",
+      "posterIsExtra": false
+    },
+    "summer-envelope": {
+      "title": "盛夏未寄信",
+      "poster": "/demo-assets/posters/summer-envelope.png",
+      "posterSource": "local-fallback",
+      "posterIsExtra": false
+    },
+    "starlight-disguise": {
+      "title": "星光借我身份",
+      "poster": "/demo-assets/posters/starlight-disguise.png",
+      "posterSource": "local-fallback",
+      "posterIsExtra": false
+    },
+    "neon-crown": {
+      "title": "霓虹之上",
+      "poster": "/demo-assets/posters/neon-crown.png",
+      "posterSource": "local-fallback",
+      "posterIsExtra": false,
+      "hero": "/demo-assets/hero/neon-crown.png",
+      "heroSource": "local-fallback"
+    },
+    "glass-ladder": {
+      "title": "玻璃天梯",
+      "poster": "/demo-assets/posters/glass-ladder.png",
+      "posterSource": "local-fallback",
+      "posterIsExtra": false
+    },
+    "verdict-at-dawn": {
+      "title": "清晨宣判",
+      "poster": "/demo-assets/posters/verdict-at-dawn.png",
+      "posterSource": "local-fallback",
+      "posterIsExtra": false
+    },
+    "alley-lanterns": {
+      "title": "巷口有盏灯",
+      "poster": "/demo-assets/posters/alley-lanterns.png",
+      "posterSource": "local-fallback",
+      "posterIsExtra": false
+    },
+    "hidden-chairman": {
+      "title": "沉默股东",
+      "poster": "/demo-assets/posters/hidden-chairman.png",
+      "posterSource": "local-fallback",
+      "posterIsExtra": false,
+      "hero": "/demo-assets/hero/hidden-chairman.png",
+      "heroSource": "local-fallback"
+    },
+    "restart-protocol": {
+      "title": "重启指令",
+      "poster": "/demo-assets/posters/restart-protocol.png",
+      "posterSource": "local-fallback",
+      "posterIsExtra": false
+    },
+    "tide-heir": {
+      "title": "潮汐继承者",
+      "poster": "/demo-assets/posters/tide-heir.png",
+      "posterSource": "local-fallback",
+      "posterIsExtra": false
+    },
+    "express-dawn": {
+      "title": "晨光速递",
+      "poster": "/demo-assets/posters/express-dawn.png",
+      "posterSource": "local-fallback",
+      "posterIsExtra": false
+    },
+    "moon-scroll": {
+      "title": "月下诏书",
+      "poster": "/demo-assets/posters/moon-scroll.png",
+      "posterSource": "local-fallback",
+      "posterIsExtra": false,
+      "hero": "/demo-assets/hero/moon-scroll.png",
+      "heroSource": "local-fallback"
+    },
+    "phoenix-ink": {
+      "title": "凤墨重书",
+      "poster": "/demo-assets/posters/phoenix-ink.png",
+      "posterSource": "local-fallback",
+      "posterIsExtra": false
+    },
+    "lantern-sword": {
+      "title": "灯河照剑",
+      "poster": "/demo-assets/posters/lantern-sword.png",
+      "posterSource": "local-fallback",
+      "posterIsExtra": false
+    },
+    "cloud-ledger": {
+      "title": "云端仙籍",
+      "poster": "/demo-assets/posters/cloud-ledger.png",
+      "posterSource": "local-fallback",
+      "posterIsExtra": false
+    },
+    "jade-clock": {
+      "title": "玉钟旧案",
+      "poster": "/demo-assets/posters/jade-clock.png",
+      "posterSource": "local-fallback",
+      "posterIsExtra": false
+    },
+    "missing-minute": {
+      "title": "消失的一分钟",
+      "poster": "/demo-assets/posters/missing-minute.png",
+      "posterSource": "local-fallback",
+      "posterIsExtra": false,
+      "hero": "/demo-assets/hero/missing-minute.png",
+      "heroSource": "local-fallback"
+    },
+    "orbit-witness": {
+      "title": "轨道见证人",
+      "poster": "/demo-assets/posters/orbit-witness.png",
+      "posterSource": "local-fallback",
+      "posterIsExtra": false
+    },
+    "paper-metropolis": {
+      "title": "纸城漫游",
+      "poster": "/demo-assets/posters/paper-metropolis.png",
+      "posterSource": "local-fallback",
+      "posterIsExtra": false
+    },
+    "north-radio": {
+      "title": "北岸留声机",
+      "poster": "/demo-assets/posters/north-radio.png",
+      "posterSource": "local-fallback",
+      "posterIsExtra": false
+    },
+    "silk-code": {
+      "title": "绸庄密语",
+      "poster": "/demo-assets/posters/silk-code.png",
+      "posterSource": "local-fallback",
+      "posterIsExtra": false
+    },
+    "palace-medicine": {
+      "title": "御膳房小医仙",
+      "poster": "/demo-assets/posters/palace-medicine.png",
+      "posterSource": "local-fallback",
+      "posterIsExtra": false
+    },
+    "field-brief": {
+      "title": "稻浪辩词",
+      "poster": "/demo-assets/posters/field-brief.png",
+      "posterSource": "local-fallback",
+      "posterIsExtra": false
+    },
+    "demo-extra-01": {
+      "title": "演示封面 01",
+      "poster": "/demo-assets/posters/demo-extra-01.png",
+      "posterSource": "local-fallback",
+      "posterIsExtra": true
+    },
+    "demo-extra-02": {
+      "title": "演示封面 02",
+      "poster": "/demo-assets/posters/demo-extra-02.png",
+      "posterSource": "local-fallback",
+      "posterIsExtra": true
+    },
+    "demo-extra-03": {
+      "title": "演示封面 03",
+      "poster": "/demo-assets/posters/demo-extra-03.png",
+      "posterSource": "local-fallback",
+      "posterIsExtra": true
+    },
+    "demo-extra-04": {
+      "title": "演示封面 04",
+      "poster": "/demo-assets/posters/demo-extra-04.png",
+      "posterSource": "local-fallback",
+      "posterIsExtra": true
+    },
+    "demo-extra-05": {
+      "title": "演示封面 05",
+      "poster": "/demo-assets/posters/demo-extra-05.png",
+      "posterSource": "local-fallback",
+      "posterIsExtra": true
+    },
+    "demo-extra-06": {
+      "title": "演示封面 06",
+      "poster": "/demo-assets/posters/demo-extra-06.png",
+      "posterSource": "local-fallback",
+      "posterIsExtra": true
+    }
+  },
+  "featured": [
+    {
+      "id": "ember-vow",
+      "title": "暮色签收",
+      "poster": "/demo-assets/posters/ember-vow.png",
+      "hero": "/demo-assets/hero/ember-vow.png"
+    },
+    {
+      "id": "neon-crown",
+      "title": "霓虹之上",
+      "poster": "/demo-assets/posters/neon-crown.png",
+      "hero": "/demo-assets/hero/neon-crown.png"
+    },
+    {
+      "id": "hidden-chairman",
+      "title": "沉默股东",
+      "poster": "/demo-assets/posters/hidden-chairman.png",
+      "hero": "/demo-assets/hero/hidden-chairman.png"
+    },
+    {
+      "id": "moon-scroll",
+      "title": "月下诏书",
+      "poster": "/demo-assets/posters/moon-scroll.png",
+      "hero": "/demo-assets/hero/moon-scroll.png"
+    },
+    {
+      "id": "missing-minute",
+      "title": "消失的一分钟",
+      "poster": "/demo-assets/posters/missing-minute.png",
+      "hero": "/demo-assets/hero/missing-minute.png"
+    }
+  ],
+  "failures": []
+}

@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img" aria-label="原创悬疑时间氛围背景">
+  <defs>
+    <linearGradient id="g" x1=".1" y1=".1" x2="1" y2="1"><stop offset="0" stop-color="#ff5338"/><stop offset=".38" stop-color="#68244f"/><stop offset="1" stop-color="#071d36"/></linearGradient>
+    <radialGradient id="r" cx=".5" cy=".42" r=".4"><stop offset="0" stop-color="#fff" stop-opacity=".22"/><stop offset=".55" stop-color="#ff2d55" stop-opacity=".12"/><stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient>
+    <filter id="b"><feGaussianBlur stdDeviation="38"/></filter>
+  </defs>
+  <rect width="1600" height="900" fill="url(#g)"/>
+  <circle cx="800" cy="380" r="330" fill="none" stroke="#fff" stroke-opacity=".16" stroke-width="24"/>
+  <circle cx="800" cy="380" r="210" fill="url(#r)"/>
+  <g filter="url(#b)" opacity=".62"><circle cx="420" cy="260" r="190" fill="#ff8a3d"/><circle cx="1180" cy="580" r="280" fill="#2f6dff"/></g>
+  <path d="M790 220v178l150 96" stroke="#fff" stroke-opacity=".38" stroke-width="14" stroke-linecap="round" fill="none"/>
+  <path d="M0 660c280-80 560-70 820 8 260 78 500 54 780-72v304H0z" fill="#05070c" opacity=".72"/>
+  <g opacity=".18" stroke="#fff" stroke-width="2"><path d="M210 185h260M180 720h460M1050 180h330M980 710h390"/></g>
+</svg>

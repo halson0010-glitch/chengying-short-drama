@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="1600" viewBox="0 0 900 1600" role="img" aria-label="原创古风月色竖版海报">
+  <defs><linearGradient id="g" x1=".05" y1="0" x2=".95" y2="1"><stop offset="0" stop-color="#f49a4a"/><stop offset=".45" stop-color="#762e43"/><stop offset="1" stop-color="#111b31"/></linearGradient><filter id="b"><feGaussianBlur stdDeviation="34"/></filter></defs>
+  <rect width="900" height="1600" fill="url(#g)"/>
+  <circle cx="645" cy="260" r="95" fill="#ffe6ba" opacity=".72"/>
+  <g filter="url(#b)" opacity=".65"><ellipse cx="300" cy="500" rx="240" ry="170" fill="#ffb06a"/><ellipse cx="640" cy="1050" rx="260" ry="180" fill="#4652a8"/></g>
+  <path d="M0 1188c240-82 420-72 602-12 132 44 224 28 298-26v450H0z" fill="#080912" opacity=".72"/>
+  <path d="M240 340h128v790H240zM518 390h150v740H518z" fill="#fff" opacity=".1"/>
+  <g opacity=".22" stroke="#ffe3bc" stroke-width="3"><path d="M150 1090c180-120 378-116 596 0"/><path d="M140 1160c190-82 410-80 620-4"/></g>
+</svg>

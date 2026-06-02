@@ -1,0 +1,33 @@
+{
+  "name": "chengying-short-drama",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "node scripts/dev-all.mjs",
+    "dev:web": "node scripts/run-workspace.mjs @chengying/web dev",
+    "dev:admin": "node scripts/run-workspace.mjs @chengying/admin dev",
+    "dev:api": "node scripts/run-workspace.mjs @chengying/api dev",
+    "build": "node scripts/run-workspace.mjs @chengying/shared build && node scripts/run-workspace.mjs @chengying/api build && node scripts/run-workspace.mjs @chengying/web build && node scripts/run-workspace.mjs @chengying/admin build",
+    "build:shared": "node scripts/run-workspace.mjs @chengying/shared build",
+    "build:web": "node scripts/run-workspace.mjs @chengying/web build",
+    "build:admin": "node scripts/run-workspace.mjs @chengying/admin build",
+    "build:api": "node scripts/run-workspace.mjs @chengying/api build",
+    "preview:web": "node scripts/run-workspace.mjs @chengying/web preview",
+    "generate:demo-assets": "node scripts/generate-demo-assets.mjs",
+    "test:openai-image": "node scripts/test-openai-image.mjs",
+    "prepare:pages": "node scripts/prepare-web-pages.mjs",
+    "db:generate": "node scripts/run-workspace.mjs @chengying/api db:generate",
+    "db:push": "node scripts/run-workspace.mjs @chengying/api db:push",
+    "db:seed": "node scripts/run-workspace.mjs @chengying/api db:seed",
+    "db:studio": "node scripts/run-workspace.mjs @chengying/api db:studio"
+  },
+  "devDependencies": {
+    "typescript": "~5.6.3",
+    "vite": "^8.0.14"
+  }
+}

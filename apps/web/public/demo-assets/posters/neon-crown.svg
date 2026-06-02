@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="1600" viewBox="0 0 900 1600" role="img" aria-label="原创霓虹逆袭竖版海报">
+  <defs><linearGradient id="g" x1=".15" y1="0" x2=".9" y2="1"><stop offset="0" stop-color="#ff573d"/><stop offset=".45" stop-color="#8b1e67"/><stop offset="1" stop-color="#071d2d"/></linearGradient><filter id="b"><feGaussianBlur stdDeviation="36"/></filter></defs>
+  <rect width="900" height="1600" fill="url(#g)"/>
+  <g filter="url(#b)" opacity=".75"><circle cx="660" cy="360" r="210" fill="#ff2d55"/><circle cx="240" cy="1040" r="230" fill="#ff9d47"/><circle cx="760" cy="1160" r="180" fill="#28c8ff"/></g>
+  <path d="M0 1180c220-110 420-96 620-20 110 42 210 46 280 4v436H0z" fill="#06070c" opacity=".72"/>
+  <path d="M236 1040 450 330l214 710H236Z" fill="#fff" opacity=".1"/>
+  <path d="M312 970 450 520l138 450H312Z" fill="#05060a" opacity=".28"/>
+  <g opacity=".22" stroke="#fff" stroke-width="3"><path d="M170 1240h560M238 1320h424M152 420h190M590 286h160"/></g>
+</svg>

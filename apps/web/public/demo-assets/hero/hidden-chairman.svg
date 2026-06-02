@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img" aria-label="原创暗夜反击氛围背景">
+  <defs>
+    <linearGradient id="g" x1="0" y1=".1" x2="1" y2=".9"><stop offset="0" stop-color="#ff532f"/><stop offset=".35" stop-color="#4f2535"/><stop offset="1" stop-color="#071724"/></linearGradient>
+    <radialGradient id="r" cx=".52" cy=".45" r=".45"><stop offset="0" stop-color="#ffb199" stop-opacity=".34"/><stop offset=".7" stop-color="#000" stop-opacity="0"/></radialGradient>
+    <filter id="b"><feGaussianBlur stdDeviation="44"/></filter>
+  </defs>
+  <rect width="1600" height="900" fill="url(#g)"/>
+  <circle cx="820" cy="390" r="420" fill="url(#r)"/>
+  <g filter="url(#b)" opacity=".65"><circle cx="1120" cy="250" r="210" fill="#ff744a"/><circle cx="340" cy="650" r="240" fill="#143b60"/></g>
+  <path d="M0 620c340-80 626-50 920 8 238 48 454 26 680-72v344H0z" fill="#05070c" opacity=".75"/>
+  <path d="M680 160h280l88 560H592z" fill="#fff" opacity=".08"/>
+  <path d="M742 210h156l50 400H692z" fill="#000" opacity=".28"/>
+  <g opacity=".2" stroke="#ffbd9a" stroke-width="4"><path d="M210 300h360M1030 220h340M1020 305h260M240 390h220"/></g>
+</svg>

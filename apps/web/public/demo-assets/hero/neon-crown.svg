@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img" aria-label="原创霓虹逆袭氛围背景">
+  <defs>
+    <linearGradient id="g" x1=".08" y1=".1" x2=".95" y2=".9"><stop offset="0" stop-color="#fc4a36"/><stop offset=".42" stop-color="#801c63"/><stop offset="1" stop-color="#061928"/></linearGradient>
+    <filter id="b"><feGaussianBlur stdDeviation="46"/></filter>
+  </defs>
+  <rect width="1600" height="900" fill="url(#g)"/>
+  <g filter="url(#b)" opacity=".72"><ellipse cx="980" cy="340" rx="390" ry="220" fill="#ff2d55"/><ellipse cx="460" cy="580" rx="250" ry="150" fill="#ff8a3d"/><ellipse cx="1180" cy="730" rx="310" ry="170" fill="#2dd4ff"/></g>
+  <path d="M100 710h1400v190H100z" fill="#05060a" opacity=".62"/>
+  <g opacity=".25" stroke="#fff" stroke-width="3"><path d="M180 690 500 210l320 480M760 690l170-310 170 310M1110 690l180-420 190 420"/></g>
+  <g opacity=".16"><rect x="260" y="180" width="180" height="500" rx="28" fill="#fff"/><rect x="1160" y="140" width="230" height="560" rx="32" fill="#fff"/></g>
+  <rect width="1600" height="900" fill="none" stroke="#fff" stroke-opacity=".08" stroke-width="2"/>
+</svg>

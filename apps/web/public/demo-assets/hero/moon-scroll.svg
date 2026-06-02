@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img" aria-label="原创古风月色氛围背景">
+  <defs>
+    <linearGradient id="g" x1=".12" y1="0" x2=".9" y2="1"><stop offset="0" stop-color="#f48c45"/><stop offset=".43" stop-color="#762e43"/><stop offset="1" stop-color="#101a31"/></linearGradient>
+    <filter id="b"><feGaussianBlur stdDeviation="42"/></filter>
+  </defs>
+  <rect width="1600" height="900" fill="url(#g)"/>
+  <circle cx="1040" cy="210" r="120" fill="#ffe7be" opacity=".66"/>
+  <g filter="url(#b)" opacity=".58"><ellipse cx="580" cy="340" rx="340" ry="180" fill="#ffad62"/><ellipse cx="1120" cy="650" rx="430" ry="190" fill="#3d4a9f"/></g>
+  <path d="M0 720c260-80 420-90 680-30 260 58 560 72 920-38v248H0z" fill="#080912" opacity=".68"/>
+  <g opacity=".18" fill="#fff"><path d="M270 210h90v520h-90z"/><path d="M380 250h52v480h-52z"/><path d="M1160 250h110v470h-110z"/><path d="M1300 300h48v420h-48z"/></g>
+  <g opacity=".2" stroke="#ffe3bc" stroke-width="2"><path d="M210 610c260-180 520-180 780 0s420 160 520-20"/><path d="M250 665c250-130 500-130 750 0s390 120 480-10"/></g>
+</svg>

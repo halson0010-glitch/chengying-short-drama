@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="1600" viewBox="0 0 900 1600" role="img" aria-label="原创暗夜反击竖版海报">
+  <defs><linearGradient id="g" x1=".05" y1="0" x2=".9" y2="1"><stop offset="0" stop-color="#ff5c31"/><stop offset=".42" stop-color="#512536"/><stop offset="1" stop-color="#071724"/></linearGradient><filter id="b"><feGaussianBlur stdDeviation="38"/></filter></defs>
+  <rect width="900" height="1600" fill="url(#g)"/>
+  <g filter="url(#b)" opacity=".68"><circle cx="665" cy="260" r="200" fill="#ff875b"/><circle cx="220" cy="1110" r="250" fill="#153d68"/></g>
+  <path d="M0 1160c230-92 392-70 585 4 130 50 230 32 315-28v464H0z" fill="#05070b" opacity=".78"/>
+  <path d="M310 250h280l94 900H216l94-900Z" fill="#fff" opacity=".09"/>
+  <path d="M374 318h152l58 650H316l58-650Z" fill="#000" opacity=".24"/>
+  <g opacity=".22" stroke="#ffbd9a" stroke-width="4"><path d="M145 396h320M190 470h220M514 326h230M510 408h176"/></g>
+</svg>
