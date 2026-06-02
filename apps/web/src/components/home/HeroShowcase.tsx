@@ -61,7 +61,7 @@ export default function HeroShowcase({ dramas }: HeroShowcaseProps) {
   };
 
   return (
-    <section className="hero-showcase relative min-h-[620px] overflow-hidden rounded-[32px] border border-white/[0.08] bg-panel shadow-card md:min-h-[680px]">
+    <section className="hero-showcase is-intro relative min-h-[620px] overflow-hidden rounded-[32px] border border-white/[0.08] bg-panel shadow-card md:min-h-[680px]">
       <HeroBackgroundStage
         current={selectedDrama}
         previous={previousDrama}
@@ -75,7 +75,7 @@ export default function HeroShowcase({ dramas }: HeroShowcaseProps) {
             revealKey={`${selectedDrama.id}-info-${transitionSeed}`}
           />
         </div>
-        <div className="hero-queue-panel mt-10 w-full max-w-[700px] self-end">
+        <div className="hero-queue-panel mt-10 w-full max-w-[720px] self-end">
           <p className="mb-3 text-xs font-semibold uppercase tracking-[0.32em] text-white/42">Featured Queue</p>
           <HeroPosterRail
             dramas={safeDramas}
@@ -86,9 +86,11 @@ export default function HeroShowcase({ dramas }: HeroShowcaseProps) {
           />
         </div>
       </div>
-      <div className="pointer-events-none relative z-10 -mt-6 flex animate-float items-center justify-center gap-1 pb-5 text-xs text-white/45">
-        <span>滑动查看更多短剧</span>
-        <ChevronDownIcon className="h-4 w-4" />
+      <div className="hero-scroll-cue pointer-events-none relative z-10 -mt-7 flex animate-float items-center justify-center pb-5 text-xs font-medium">
+        <span className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-black/35 px-4 py-2 text-[#ffe0d5]/85 shadow-[0_12px_36px_rgba(0,0,0,0.38)] backdrop-blur">
+          滑动查看更多短剧
+          <ChevronDownIcon className="h-4 w-4 text-[#ff8a65]" />
+        </span>
       </div>
     </section>
   );

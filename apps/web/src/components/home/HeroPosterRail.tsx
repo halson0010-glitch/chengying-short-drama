@@ -43,7 +43,7 @@ export default function HeroPosterRail({
               selected ? 'is-active opacity-100' : 'opacity-60 hover:opacity-100'
             }`}
             style={{
-              animationDelay: `${index * 90}ms`,
+              animationDelay: `${860 + index * 110}ms`,
               '--thumb-opacity': selected ? '1' : '0.6',
             } as ThumbStyle}
           >

@@ -53,6 +53,9 @@ export default function HeroBackgroundStage({ current, previous, revealKey }: He
       <div className="hero-warm-flare hero-warm-flare-left" />
       <div className="hero-warm-flare hero-warm-flare-right" />
       <div className="hero-floor-glow" />
+      <div className="hero-intro-dark" aria-hidden="true" />
+      <div className="hero-intro-beam" aria-hidden="true" />
+      <div className="hero-intro-reveal-line" aria-hidden="true" />
     </div>
   );
 }

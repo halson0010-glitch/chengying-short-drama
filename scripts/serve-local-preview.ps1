@@ -1,7 +1,8 @@
 [CmdletBinding()]
 param(
   [int]$StartPort = 5173,
-  [switch]$NoBrowser
+  [switch]$NoBrowser,
+  [switch]$NoPause
 )
 
 $ErrorActionPreference = 'Stop'
@@ -118,6 +119,9 @@ try {
       $requestTarget = $Matches[2]
       $rawPath = $requestTarget.Split('?')[0]
       $relativePath = [System.Uri]::UnescapeDataString($rawPath).TrimStart('/')
+      if ($relativePath.StartsWith('chengying-short-drama/', [System.StringComparison]::OrdinalIgnoreCase)) {
+        $relativePath = $relativePath.Substring('chengying-short-drama/'.Length)
+      }
 
       if ([string]::IsNullOrWhiteSpace($relativePath)) {
         $filePath = $indexPath

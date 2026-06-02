@@ -3,18 +3,21 @@ import { useEffect, useRef, useState } from 'react';
 type UseRevealOnScrollOptions = {
   rootMargin?: string;
   threshold?: number;
+  resetDelayMs?: number;
 };
 
 export function useRevealOnScroll<T extends HTMLElement>({
-  rootMargin = '0px 0px -12% 0px',
-  threshold = 0.16,
+  rootMargin = '0px 0px -14% 0px',
+  threshold = 0.14,
+  resetDelayMs = 120,
 }: UseRevealOnScrollOptions = {}) {
   const ref = useRef<T | null>(null);
   const [revealed, setRevealed] = useState(false);
+  const resetTimerRef = useRef<number | undefined>();
 
   useEffect(() => {
     const node = ref.current;
-    if (!node || revealed) return undefined;
+    if (!node) return undefined;
 
     if (!('IntersectionObserver' in window)) {
       setRevealed(true);
@@ -23,17 +26,29 @@ export function useRevealOnScroll<T extends HTMLElement>({
 
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting) {
+        const shouldReveal = entry.isIntersecting && entry.intersectionRatio >= threshold;
+        if (shouldReveal) {
+          window.clearTimeout(resetTimerRef.current);
           setRevealed(true);
-          observer.disconnect();
+          return;
+        }
+
+        if (!entry.isIntersecting) {
+          window.clearTimeout(resetTimerRef.current);
+          resetTimerRef.current = window.setTimeout(() => {
+            setRevealed(false);
+          }, resetDelayMs);
         }
       },
-      { rootMargin, threshold },
+      { rootMargin, threshold: [0, threshold] },
     );
 
     observer.observe(node);
-    return () => observer.disconnect();
-  }, [revealed, rootMargin, threshold]);
+    return () => {
+      window.clearTimeout(resetTimerRef.current);
+      observer.disconnect();
+    };
+  }, [resetDelayMs, rootMargin, threshold]);
 
   return { ref, revealed };
 }

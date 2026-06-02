@@ -94,10 +94,18 @@ button {
     display: none;
   }
 
+  .hero-showcase {
+    isolation: isolate;
+    background:
+      radial-gradient(circle at 72% 18%, rgba(255, 77, 46, 0.16), transparent 34%),
+      #08080b;
+  }
+
   .hero-bg-image,
   .hero-bg-gradient {
     position: absolute;
     inset: 0;
+    z-index: 0;
     height: 100%;
     width: 100%;
     object-fit: cover;
@@ -111,6 +119,7 @@ button {
   }
 
   .hero-bg-reveal {
+    z-index: 1;
     animation: heroCinematicReveal 980ms cubic-bezier(0.22, 1, 0.36, 1) both;
     will-change: clip-path, opacity, transform, filter;
   }
@@ -118,6 +127,7 @@ button {
   .hero-cinema-mask {
     position: absolute;
     inset: 0;
+    z-index: 2;
     background:
       radial-gradient(circle at 76% 42%, rgba(255, 105, 66, 0.18), transparent 26%),
       linear-gradient(90deg, rgba(8, 8, 11, 0.96) 0%, rgba(8, 8, 11, 0.78) 34%, rgba(8, 8, 11, 0.28) 66%, rgba(8, 8, 11, 0.48) 100%),
@@ -127,11 +137,13 @@ button {
   .hero-edge-vignette {
     position: absolute;
     inset: 0;
+    z-index: 3;
     box-shadow: inset 0 0 140px rgba(0, 0, 0, 0.88), inset 0 -140px 160px rgba(0, 0, 0, 0.74);
   }
 
   .hero-warm-flare {
     position: absolute;
+    z-index: 3;
     border-radius: 999px;
     pointer-events: none;
   }
@@ -157,13 +169,61 @@ button {
   .hero-floor-glow {
     position: absolute;
     inset: auto 8% 0 22%;
+    z-index: 3;
     height: 10rem;
     background: radial-gradient(ellipse at center, rgba(255, 77, 46, 0.24), transparent 68%);
     filter: blur(28px);
   }
 
+  .hero-intro-dark {
+    position: absolute;
+    inset: 0;
+    z-index: 6;
+    pointer-events: none;
+    background:
+      radial-gradient(circle at 50% 48%, rgba(255, 77, 46, 0.18), transparent 18%),
+      #050506;
+    animation: heroIntroDark 1500ms cubic-bezier(0.2, 0.78, 0.2, 1) forwards;
+  }
+
+  .hero-intro-beam {
+    position: absolute;
+    left: 50%;
+    top: -18%;
+    z-index: 7;
+    height: 136%;
+    width: 44%;
+    pointer-events: none;
+    background:
+      linear-gradient(90deg, transparent 0%, rgba(255, 170, 112, 0.03) 12%, rgba(255, 92, 56, 0.42) 50%, rgba(255, 170, 112, 0.03) 88%, transparent 100%),
+      radial-gradient(ellipse at center, rgba(255, 92, 56, 0.32), transparent 64%);
+    filter: blur(26px);
+    mix-blend-mode: screen;
+    transform: translateX(-50%) scaleX(0.08) rotate(0.001deg);
+    transform-origin: center;
+    animation: heroIntroBeam 1450ms cubic-bezier(0.2, 0.78, 0.2, 1) forwards;
+  }
+
+  .hero-intro-reveal-line {
+    position: absolute;
+    left: 50%;
+    top: 10%;
+    z-index: 8;
+    height: 80%;
+    width: 2px;
+    pointer-events: none;
+    background: linear-gradient(180deg, transparent, rgba(255, 229, 210, 0.92), rgba(255, 77, 46, 0.86), transparent);
+    box-shadow: 0 0 36px rgba(255, 77, 46, 0.8), 0 0 86px rgba(255, 77, 46, 0.44);
+    transform: translateX(-50%) scaleY(0.2);
+    animation: heroIntroRevealLine 1350ms cubic-bezier(0.2, 0.78, 0.2, 1) forwards;
+  }
+
   .hero-info-panel {
-    animation: heroInfoIn 520ms ease both;
+    animation: heroInfoIn 620ms ease both;
+  }
+
+  .hero-showcase.is-intro .hero-info-panel {
+    animation: heroInfoIntro 900ms cubic-bezier(0.22, 1, 0.36, 1) both;
   }
 
   .hero-thumb {
@@ -181,11 +241,30 @@ button {
     padding: 14px 0 0 18px;
   }
 
+  .hero-showcase.is-intro .hero-queue-panel {
+    animation: heroQueueIntro 760ms cubic-bezier(0.22, 1, 0.36, 1) 680ms both;
+  }
+
+  .hero-scroll-cue {
+    text-shadow: 0 0 18px rgba(255, 77, 46, 0.36);
+  }
+
+  .hero-scroll-cue span {
+    transition: border-color 220ms ease, background 220ms ease, color 220ms ease;
+  }
+
   .reveal-title,
   .reveal-content,
   .reveal-card {
     opacity: 0;
     transform: translateY(20px) scale(0.98);
+  }
+
+  .reveal-section:not(.is-revealed) .reveal-title,
+  .reveal-section:not(.is-revealed) .reveal-content,
+  .reveal-section:not(.is-revealed) .reveal-card {
+    transition: opacity 240ms ease, transform 240ms ease;
+    transition-delay: 0ms;
   }
 
   .is-revealed .reveal-title {
@@ -210,19 +289,100 @@ button {
 
 @keyframes heroCinematicReveal {
   0% {
-    clip-path: inset(0 0 0 58%);
-    filter: blur(16px) saturate(1.1);
-    opacity: 0.2;
-    transform: scale(1.09) translateX(1.8%);
+    clip-path: inset(0 48% 0 48% round 28px);
+    filter: blur(18px) saturate(1.12) brightness(1.08);
+    opacity: 0.24;
+    transform: scale(1.09);
+  }
+  42% {
+    clip-path: inset(0 18% 0 18% round 20px);
+    opacity: 0.82;
   }
   58% {
-    opacity: 0.95;
+    opacity: 0.96;
   }
   100% {
     clip-path: inset(0 0 0 0);
-    filter: blur(0);
+    filter: blur(0) saturate(1) brightness(1);
     opacity: 1;
-    transform: scale(1.035) translateX(0);
+    transform: scale(1.035);
+  }
+}
+
+@keyframes heroIntroDark {
+  0% {
+    opacity: 1;
+  }
+  46% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+
+@keyframes heroIntroBeam {
+  0% {
+    opacity: 0;
+    transform: translateX(-50%) scaleX(0.04);
+  }
+  18% {
+    opacity: 0.92;
+    transform: translateX(-50%) scaleX(0.08);
+  }
+  58% {
+    opacity: 0.72;
+    transform: translateX(-50%) scaleX(1.25);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(-50%) scaleX(2.5);
+  }
+}
+
+@keyframes heroIntroRevealLine {
+  0% {
+    opacity: 0;
+    transform: translateX(-50%) scaleY(0.08);
+  }
+  16% {
+    opacity: 1;
+    transform: translateX(-50%) scaleY(0.76);
+  }
+  62% {
+    opacity: 0.64;
+    transform: translateX(-50%) scaleY(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(-50%) scaleY(1.05);
+  }
+}
+
+@keyframes heroInfoIntro {
+  0% {
+    opacity: 0;
+    transform: translateY(22px) scale(0.985);
+  }
+  54% {
+    opacity: 0;
+    transform: translateY(22px) scale(0.985);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes heroQueueIntro {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
@@ -263,6 +423,11 @@ button {
     animation-duration: 620ms;
   }
 
+  .hero-intro-beam {
+    width: 70%;
+    filter: blur(22px);
+  }
+
   .hero-cinema-mask {
     background:
       radial-gradient(circle at 70% 24%, rgba(255, 105, 66, 0.20), transparent 30%),
@@ -298,5 +463,11 @@ button {
 
   .hero-bg-reveal {
     clip-path: none;
+  }
+
+  .hero-intro-dark,
+  .hero-intro-beam,
+  .hero-intro-reveal-line {
+    display: none;
   }
 }
