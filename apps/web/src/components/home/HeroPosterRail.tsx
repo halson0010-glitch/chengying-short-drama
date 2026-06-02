@@ -1,6 +1,6 @@
 import type { CSSProperties } from 'react';
 import type { Drama } from '../../types/drama';
-import { getDramaPosterFallbackImage, getDramaPosterImage } from '../../lib/hero';
+import { resolveDramaPosterAsset } from '../../lib/hero';
 import MockPoster from '../drama/MockPoster';
 
 type HeroPosterRailProps = {
@@ -32,6 +32,7 @@ export default function HeroPosterRail({
     >
       {dramas.map((drama, index) => {
         const selected = selectedIndex === index;
+        const posterAsset = resolveDramaPosterAsset(drama);
         return (
           <button
             key={drama.id}
@@ -43,15 +44,16 @@ export default function HeroPosterRail({
               selected ? 'is-active opacity-100' : 'opacity-60 hover:opacity-100'
             }`}
             style={{
-              animationDelay: `${860 + index * 110}ms`,
+              animationDelay: `${1120 + index * 80}ms`,
               '--thumb-opacity': selected ? '1' : '0.6',
             } as ThumbStyle}
           >
             <MockPoster
               gradient={drama.gradient}
               title={drama.title}
-              posterUrl={getDramaPosterImage(drama)}
-              fallbackPosterUrl={getDramaPosterFallbackImage(drama)}
+              posterUrl={posterAsset.src}
+              posterCandidates={posterAsset.candidates.map((candidate) => candidate.src)}
+              assetSource={String(posterAsset.source)}
               tags={drama.tags}
               showPlay={false}
               className={`rounded-2xl border transition duration-300 ${

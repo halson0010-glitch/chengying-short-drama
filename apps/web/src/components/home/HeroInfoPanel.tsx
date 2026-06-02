@@ -8,11 +8,12 @@ type HeroInfoPanelProps = {
   drama: Drama;
   sequence: number;
   revealKey: string;
+  introActive: boolean;
 };
 
-export default function HeroInfoPanel({ drama, sequence, revealKey }: HeroInfoPanelProps) {
+export default function HeroInfoPanel({ drama, sequence, revealKey, introActive }: HeroInfoPanelProps) {
   return (
-    <div key={revealKey} className="hero-info-panel max-w-[560px]">
+    <div key={revealKey} className={`hero-info-panel max-w-[560px] ${introActive ? 'is-intro-copy' : 'is-switch-copy'}`}>
       <p className="mb-5 inline-flex rounded-full border border-accent/20 bg-black/25 px-3 py-1.5 text-xs font-semibold text-[#ff8a65] backdrop-blur">
         开屏推荐 0{sequence} · 沉浸精选
       </p>
@@ -33,7 +34,7 @@ export default function HeroInfoPanel({ drama, sequence, revealKey }: HeroInfoPa
         <span>热度 {drama.heat}</span>
         <span>{drama.visualTone || '沉浸短剧感'}</span>
       </div>
-      <div className="mt-9 flex flex-wrap gap-3">
+      <div className="hero-play-actions mt-9 flex flex-wrap gap-3">
         <GradientButton
           to={`/watch/${drama.id}/1`}
           icon={<PlayIcon className="h-4 w-4" />}

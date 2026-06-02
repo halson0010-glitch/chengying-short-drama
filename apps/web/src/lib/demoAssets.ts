@@ -5,6 +5,8 @@ export type DemoAssetItem = {
   title?: string;
   poster?: string;
   hero?: string;
+  posterSource?: string;
+  heroSource?: string;
   posterIsExtra?: boolean;
 };
 
@@ -35,6 +37,10 @@ export function getDemoAssetsManifest() {
   return manifest;
 }
 
+export function isDemoAssetsManifestLoaded() {
+  return Boolean(manifest);
+}
+
 export async function loadDemoAssetsManifest() {
   if (manifestPromise) return manifestPromise;
 
@@ -58,6 +64,11 @@ export function getDirectDemoAssetPath(dramaId: string, kind: 'poster' | 'hero')
 export function getDemoAssetPath(drama: Pick<Drama, 'id'>, kind: 'poster' | 'hero') {
   const asset = manifest?.assets?.[drama.id];
   return kind === 'poster' ? asset?.poster : asset?.hero;
+}
+
+export function getDemoAssetSource(drama: Pick<Drama, 'id'>, kind: 'poster' | 'hero') {
+  const asset = manifest?.assets?.[drama.id];
+  return kind === 'poster' ? asset?.posterSource : asset?.heroSource;
 }
 
 export function getPublicDemoAssetPath(drama: Pick<Drama, 'id'>, kind: 'poster' | 'hero') {

@@ -118,10 +118,21 @@ button {
     background-size: cover;
   }
 
-  .hero-bg-reveal {
+  .hero-bg-previous {
+    z-index: 0;
+    opacity: 0.72;
+  }
+
+  .hero-image-focus-in {
     z-index: 1;
-    animation: heroCinematicReveal 980ms cubic-bezier(0.22, 1, 0.36, 1) both;
-    will-change: clip-path, opacity, transform, filter;
+    animation: heroImageFocusIn 1700ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+    will-change: opacity, transform, filter;
+  }
+
+  .hero-bg-crossfade {
+    z-index: 1;
+    animation: heroBgCrossfade 820ms cubic-bezier(0.22, 1, 0.36, 1) both;
+    will-change: opacity, transform;
   }
 
   .hero-cinema-mask {
@@ -129,16 +140,16 @@ button {
     inset: 0;
     z-index: 2;
     background:
-      radial-gradient(circle at 76% 42%, rgba(255, 105, 66, 0.18), transparent 26%),
-      linear-gradient(90deg, rgba(8, 8, 11, 0.96) 0%, rgba(8, 8, 11, 0.78) 34%, rgba(8, 8, 11, 0.28) 66%, rgba(8, 8, 11, 0.48) 100%),
-      linear-gradient(180deg, rgba(8, 8, 11, 0.30) 0%, rgba(8, 8, 11, 0.08) 46%, rgba(8, 8, 11, 0.88) 100%);
+      radial-gradient(circle at 76% 42%, rgba(255, 105, 66, 0.12), transparent 28%),
+      linear-gradient(90deg, rgba(8, 8, 11, 0.86) 0%, rgba(8, 8, 11, 0.66) 34%, rgba(8, 8, 11, 0.18) 66%, rgba(8, 8, 11, 0.34) 100%),
+      linear-gradient(180deg, rgba(8, 8, 11, 0.22) 0%, rgba(8, 8, 11, 0.04) 46%, rgba(8, 8, 11, 0.68) 100%);
   }
 
   .hero-edge-vignette {
     position: absolute;
     inset: 0;
     z-index: 3;
-    box-shadow: inset 0 0 140px rgba(0, 0, 0, 0.88), inset 0 -140px 160px rgba(0, 0, 0, 0.74);
+    box-shadow: inset 0 0 120px rgba(0, 0, 0, 0.74), inset 0 -120px 140px rgba(0, 0, 0, 0.62);
   }
 
   .hero-warm-flare {
@@ -175,55 +186,42 @@ button {
     filter: blur(28px);
   }
 
-  .hero-intro-dark {
+  .hero-film-intro {
     position: absolute;
     inset: 0;
     z-index: 6;
     pointer-events: none;
     background:
-      radial-gradient(circle at 50% 48%, rgba(255, 77, 46, 0.18), transparent 18%),
-      #050506;
-    animation: heroIntroDark 1500ms cubic-bezier(0.2, 0.78, 0.2, 1) forwards;
+      radial-gradient(ellipse at 68% 46%, rgba(255, 77, 46, 0.18), transparent 42%),
+      linear-gradient(90deg, rgba(8, 8, 11, 0.68), rgba(8, 8, 11, 0.36) 48%, rgba(8, 8, 11, 0.62));
+    animation: heroFilmIntro 1650ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
   }
 
-  .hero-intro-beam {
+  .hero-soft-projector-light {
     position: absolute;
-    left: 50%;
-    top: -18%;
+    left: -12%;
+    top: 14%;
     z-index: 7;
-    height: 136%;
-    width: 44%;
+    height: 44%;
+    width: 120%;
     pointer-events: none;
-    background:
-      linear-gradient(90deg, transparent 0%, rgba(255, 170, 112, 0.03) 12%, rgba(255, 92, 56, 0.42) 50%, rgba(255, 170, 112, 0.03) 88%, transparent 100%),
-      radial-gradient(ellipse at center, rgba(255, 92, 56, 0.32), transparent 64%);
-    filter: blur(26px);
+    background: linear-gradient(12deg, transparent 0%, rgba(255, 178, 118, 0.02) 18%, rgba(255, 126, 82, 0.22) 48%, rgba(255, 215, 166, 0.08) 62%, transparent 100%);
+    filter: blur(34px);
     mix-blend-mode: screen;
-    transform: translateX(-50%) scaleX(0.08) rotate(0.001deg);
-    transform-origin: center;
-    animation: heroIntroBeam 1450ms cubic-bezier(0.2, 0.78, 0.2, 1) forwards;
+    transform: translate3d(-4%, 10%, 0) rotate(-6deg);
+    animation: heroSoftProjectorLight 1650ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
   }
 
-  .hero-intro-reveal-line {
-    position: absolute;
-    left: 50%;
-    top: 10%;
-    z-index: 8;
-    height: 80%;
-    width: 2px;
-    pointer-events: none;
-    background: linear-gradient(180deg, transparent, rgba(255, 229, 210, 0.92), rgba(255, 77, 46, 0.86), transparent);
-    box-shadow: 0 0 36px rgba(255, 77, 46, 0.8), 0 0 86px rgba(255, 77, 46, 0.44);
-    transform: translateX(-50%) scaleY(0.2);
-    animation: heroIntroRevealLine 1350ms cubic-bezier(0.2, 0.78, 0.2, 1) forwards;
+  .hero-info-panel.is-switch-copy {
+    animation: heroInfoIn 460ms ease both;
   }
 
-  .hero-info-panel {
-    animation: heroInfoIn 620ms ease both;
-  }
-
-  .hero-showcase.is-intro .hero-info-panel {
+  .hero-info-panel.is-intro-copy {
     animation: heroInfoIntro 900ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .hero-info-panel.is-intro-copy .hero-play-actions {
+    animation: heroPlayActionsIntro 760ms cubic-bezier(0.22, 1, 0.36, 1) 880ms both;
   }
 
   .hero-thumb {
@@ -242,7 +240,7 @@ button {
   }
 
   .hero-showcase.is-intro .hero-queue-panel {
-    animation: heroQueueIntro 760ms cubic-bezier(0.22, 1, 0.36, 1) 680ms both;
+    animation: heroQueueStaggerIn 820ms cubic-bezier(0.22, 1, 0.36, 1) 920ms both;
   }
 
   .hero-scroll-cue {
@@ -287,76 +285,61 @@ button {
   }
 }
 
-@keyframes heroCinematicReveal {
+@keyframes heroImageFocusIn {
   0% {
-    clip-path: inset(0 48% 0 48% round 28px);
-    filter: blur(18px) saturate(1.12) brightness(1.08);
-    opacity: 0.24;
-    transform: scale(1.09);
-  }
-  42% {
-    clip-path: inset(0 18% 0 18% round 20px);
-    opacity: 0.82;
-  }
-  58% {
-    opacity: 0.96;
-  }
-  100% {
-    clip-path: inset(0 0 0 0);
-    filter: blur(0) saturate(1) brightness(1);
-    opacity: 1;
-    transform: scale(1.035);
-  }
-}
-
-@keyframes heroIntroDark {
-  0% {
-    opacity: 1;
+    filter: blur(20px) saturate(1.12);
+    opacity: 0.35;
+    transform: scale(1.06);
   }
   46% {
-    opacity: 1;
+    filter: blur(8px) saturate(1.06);
+    opacity: 0.66;
+    transform: scale(1.04);
   }
   100% {
-    opacity: 0;
-    visibility: hidden;
+    filter: blur(0) saturate(1);
+    opacity: 1;
+    transform: scale(1.025);
   }
 }
 
-@keyframes heroIntroBeam {
+@keyframes heroBgCrossfade {
   0% {
     opacity: 0;
-    transform: translateX(-50%) scaleX(0.04);
+    transform: scale(1.025);
   }
-  18% {
-    opacity: 0.92;
-    transform: translateX(-50%) scaleX(0.08);
+  100% {
+    opacity: 1;
+    transform: scale(1.015);
+  }
+}
+
+@keyframes heroFilmIntro {
+  0% {
+    opacity: 1;
+    backdrop-filter: blur(2px);
   }
   58% {
-    opacity: 0.72;
-    transform: translateX(-50%) scaleX(1.25);
+    opacity: 0.62;
   }
   100% {
     opacity: 0;
-    transform: translateX(-50%) scaleX(2.5);
+    backdrop-filter: blur(0);
   }
 }
 
-@keyframes heroIntroRevealLine {
+@keyframes heroSoftProjectorLight {
   0% {
     opacity: 0;
-    transform: translateX(-50%) scaleY(0.08);
+    transform: translate3d(-7%, 14%, 0) rotate(-6deg);
   }
-  16% {
-    opacity: 1;
-    transform: translateX(-50%) scaleY(0.76);
-  }
-  62% {
-    opacity: 0.64;
-    transform: translateX(-50%) scaleY(1);
+  34% {
+    opacity: 0.72;
+    transform: translate3d(-3%, 8%, 0) rotate(-6deg);
   }
   100% {
     opacity: 0;
-    transform: translateX(-50%) scaleY(1.05);
+    transform: translate3d(2%, 0, 0) rotate(-6deg);
   }
 }
 
@@ -375,10 +358,21 @@ button {
   }
 }
 
-@keyframes heroQueueIntro {
+@keyframes heroPlayActionsIntro {
   0% {
     opacity: 0;
-    transform: translateY(20px);
+    transform: translateY(12px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes heroQueueStaggerIn {
+  0% {
+    opacity: 0;
+    transform: translateY(16px);
   }
   100% {
     opacity: 1;
@@ -419,20 +413,11 @@ button {
     transform: scale(1.02);
   }
 
-  .hero-bg-reveal {
-    animation-duration: 620ms;
-  }
-
-  .hero-intro-beam {
-    width: 70%;
-    filter: blur(22px);
-  }
-
   .hero-cinema-mask {
     background:
       radial-gradient(circle at 70% 24%, rgba(255, 105, 66, 0.20), transparent 30%),
-      linear-gradient(90deg, rgba(8, 8, 11, 0.88) 0%, rgba(8, 8, 11, 0.66) 56%, rgba(8, 8, 11, 0.40) 100%),
-      linear-gradient(180deg, rgba(8, 8, 11, 0.20) 0%, rgba(8, 8, 11, 0.28) 44%, rgba(8, 8, 11, 0.92) 100%);
+      linear-gradient(90deg, rgba(8, 8, 11, 0.82) 0%, rgba(8, 8, 11, 0.56) 56%, rgba(8, 8, 11, 0.28) 100%),
+      linear-gradient(180deg, rgba(8, 8, 11, 0.18) 0%, rgba(8, 8, 11, 0.24) 44%, rgba(8, 8, 11, 0.82) 100%);
   }
 
   .hero-queue-panel {
@@ -461,13 +446,8 @@ button {
     transition-duration: 1ms !important;
   }
 
-  .hero-bg-reveal {
-    clip-path: none;
-  }
-
-  .hero-intro-dark,
-  .hero-intro-beam,
-  .hero-intro-reveal-line {
+  .hero-film-intro,
+  .hero-soft-projector-light {
     display: none;
   }
 }

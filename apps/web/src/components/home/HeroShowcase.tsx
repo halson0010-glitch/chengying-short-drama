@@ -1,6 +1,8 @@
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { track } from '../../lib/analytics';
+import { resolveDramaHeroAsset, resolveDramaPosterAsset } from '../../lib/hero';
 import { useHeroAutoplay } from '../../hooks/useHeroAutoplay';
+import { usePreloadHeroAssets } from '../../hooks/usePreloadHeroAssets';
 import type { Drama } from '../../types/drama';
 import { ChevronDownIcon } from '../common/Icons';
 import HeroBackgroundStage from './HeroBackgroundStage';
@@ -11,10 +13,36 @@ type HeroShowcaseProps = {
   dramas: Drama[];
 };
 
+function AssetDebugOverlay({ drama }: { drama: Drama }) {
+  const hero = resolveDramaHeroAsset(drama);
+  const poster = resolveDramaPosterAsset(drama);
+
+  return (
+    <div className="absolute right-4 top-4 z-20 max-w-[320px] rounded-2xl border border-white/10 bg-black/70 p-3 text-[11px] leading-5 text-white/72 shadow-card backdrop-blur">
+      <p className="font-semibold text-white">Asset Debug</p>
+      <p>drama: {drama.id}</p>
+      <p>manifest loaded: {hero.manifestLoaded ? 'yes' : 'no'}</p>
+      <p>hero source: {String(hero.source)}</p>
+      <p className="truncate">hero src: {hero.src || 'gradient'}</p>
+      <p>poster source: {String(poster.source)}</p>
+      <p className="truncate">poster src: {poster.src || 'gradient'}</p>
+    </div>
+  );
+}
+
 export default function HeroShowcase({ dramas }: HeroShowcaseProps) {
   const [transitionSeed, setTransitionSeed] = useState(0);
+  const [introFinished, setIntroFinished] = useState(false);
   const previousIndexRef = useRef(0);
   const safeDramas = useMemo(() => dramas.slice(0, 5), [dramas]);
+  const debugAssets = import.meta.env.VITE_DEBUG_ASSETS === 'true';
+
+  usePreloadHeroAssets(safeDramas);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => setIntroFinished(true), 2200);
+    return () => window.clearTimeout(timer);
+  }, []);
 
   const { currentIndex, selectIndex, pause, resume } = useHeroAutoplay({
     length: safeDramas.length,
@@ -36,6 +64,7 @@ export default function HeroShowcase({ dramas }: HeroShowcaseProps) {
 
   const selectedDrama = safeDramas[currentIndex] ?? safeDramas[0];
   const previousDrama = safeDramas[previousIndexRef.current] ?? selectedDrama;
+  const introActive = !introFinished;
 
   if (!selectedDrama) return null;
 
@@ -61,18 +90,25 @@ export default function HeroShowcase({ dramas }: HeroShowcaseProps) {
   };
 
   return (
-    <section className="hero-showcase is-intro relative min-h-[620px] overflow-hidden rounded-[32px] border border-white/[0.08] bg-panel shadow-card md:min-h-[680px]">
+    <section
+      className={`hero-showcase relative min-h-[620px] overflow-hidden rounded-[32px] border border-white/[0.08] bg-panel shadow-card md:min-h-[680px] ${
+        introActive ? 'is-intro' : 'is-ready'
+      }`}
+    >
       <HeroBackgroundStage
         current={selectedDrama}
         previous={previousDrama}
         revealKey={`${selectedDrama.id}-${transitionSeed}`}
+        introActive={introActive}
       />
+      {debugAssets && <AssetDebugOverlay drama={selectedDrama} />}
       <div className="relative z-10 flex min-h-[620px] flex-col justify-between px-5 pb-7 pt-8 sm:px-8 md:min-h-[680px] md:px-10 md:py-12 lg:px-14">
         <div className="pt-4 md:pt-10">
           <HeroInfoPanel
             drama={selectedDrama}
             sequence={currentIndex + 1}
             revealKey={`${selectedDrama.id}-info-${transitionSeed}`}
+            introActive={introActive}
           />
         </div>
         <div className="hero-queue-panel mt-10 w-full max-w-[720px] self-end">

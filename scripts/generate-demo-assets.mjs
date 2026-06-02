@@ -288,15 +288,81 @@ function smoothStep(edge0, edge1, value) {
   return t * t * (3 - 2 * t);
 }
 
+function ellipseFill(x, y, centerX, centerY, radiusX, radiusY, softness = 0.08) {
+  const distance = Math.hypot((x - centerX) / radiusX, (y - centerY) / radiusY);
+  return 1 - smoothStep(1 - softness, 1 + softness, distance);
+}
+
+function ellipseRing(x, y, centerX, centerY, radiusX, radiusY, width = 0.035) {
+  const distance = Math.hypot((x - centerX) / radiusX, (y - centerY) / radiusY);
+  return Math.max(0, 1 - Math.abs(distance - 1) / width);
+}
+
+function rectFill(x, y, left, top, right, bottom, softness = 0.01) {
+  const horizontal = smoothStep(left - softness, left + softness, x) * smoothStep(right + softness, right - softness, x);
+  const vertical = smoothStep(top - softness, top + softness, y) * smoothStep(bottom + softness, bottom - softness, y);
+  return horizontal * vertical;
+}
+
+function lineGlow(x, y, x1, y1, x2, y2, width = 0.01) {
+  const length = Math.hypot(x2 - x1, y2 - y1) || 1;
+  const t = Math.max(0, Math.min(1, ((x - x1) * (x2 - x1) + (y - y1) * (y2 - y1)) / (length * length)));
+  const px = x1 + (x2 - x1) * t;
+  const py = y1 + (y2 - y1) * t;
+  return Math.max(0, 1 - Math.hypot(x - px, y - py) / width);
+}
+
+function blendColor(base, color, alpha) {
+  base[0] = base[0] * (1 - alpha) + color[0] * alpha;
+  base[1] = base[1] * (1 - alpha) + color[1] * alpha;
+  base[2] = base[2] * (1 - alpha) + color[2] * alpha;
+}
+
+function darken(base, amount) {
+  base[0] *= 1 - amount;
+  base[1] *= 1 - amount;
+  base[2] *= 1 - amount;
+}
+
+function characterMask(x, y, centerX, headY, scale = 1, wide = 1) {
+  const head = ellipseFill(x, y, centerX, headY, 0.052 * scale, 0.068 * scale, 0.06);
+  const hair = ellipseFill(x, y, centerX, headY + 0.012 * scale, 0.068 * scale, 0.082 * scale, 0.08);
+  const neck = rectFill(x, y, centerX - 0.025 * scale, headY + 0.055 * scale, centerX + 0.025 * scale, headY + 0.12 * scale, 0.008);
+  const shoulder = ellipseFill(x, y, centerX, headY + 0.175 * scale, 0.18 * scale * wide, 0.09 * scale, 0.08);
+  const torso = ellipseFill(x, y, centerX, headY + 0.31 * scale, 0.145 * scale * wide, 0.28 * scale, 0.1);
+  const coat = rectFill(x, y, centerX - 0.115 * scale * wide, headY + 0.15 * scale, centerX + 0.115 * scale * wide, headY + 0.56 * scale, 0.06);
+  return Math.max(head, hair * 0.94, neck, shoulder, torso, coat * 0.9);
+}
+
+function characterRim(x, y, centerX, headY, scale = 1, wide = 1) {
+  const outer = characterMask(x, y, centerX, headY, scale * 1.035, wide);
+  const inner = characterMask(x, y, centerX, headY, scale * 0.965, wide);
+  return Math.max(0, outer - inner);
+}
+
+function getVisualProfile(drama) {
+  const id = drama.id || '';
+  if (id === 'ember-vow') return { type: 'romance', scene: 'city', palette: 0 };
+  if (id === 'neon-crown') return { type: 'queen', scene: 'neon', palette: 3 };
+  if (id === 'hidden-chairman') return { type: 'business', scene: 'office', palette: 4 };
+  if (id === 'moon-scroll') return { type: 'ancient', scene: 'palace', palette: 2 };
+  if (id === 'missing-minute') return { type: 'suspense', scene: 'clock', palette: 1 };
+  if ((drama.background || '').includes('古') || (drama.category || '').includes('古')) return { type: 'ancient', scene: 'palace', palette: 2 };
+  if ((drama.category || '').includes('悬') || (drama.theme || '').includes('脑')) return { type: 'suspense', scene: 'clock', palette: 1 };
+  if ((drama.category || '').includes('逆') || (drama.theme || '').includes('战')) return { type: 'business', scene: 'office', palette: 4 };
+  return { type: 'romance', scene: 'city', palette: 0 };
+}
+
 function drawFallbackPixels(drama, kind) {
   const poster = kind === 'poster';
   const width = poster ? 540 : 1280;
   const height = poster ? 960 : 720;
   const seed = hashString(`${kind}:${drama.id}:${drama.title}`);
   const random = seededRandom(seed);
-  const palette = palettes[seed % palettes.length];
-  const centerX = poster ? 0.48 + (random() - 0.5) * 0.08 : 0.68 + (random() - 0.5) * 0.08;
-  const centerY = poster ? 0.36 + (random() - 0.5) * 0.06 : 0.42 + (random() - 0.5) * 0.08;
+  const profile = getVisualProfile(drama);
+  const palette = palettes[profile.palette ?? seed % palettes.length];
+  const centerX = poster ? 0.5 + (random() - 0.5) * 0.035 : 0.72 + (random() - 0.5) * 0.04;
+  const centerY = poster ? 0.33 + (random() - 0.5) * 0.03 : 0.38 + (random() - 0.5) * 0.04;
   const glowX = poster ? 0.68 + random() * 0.25 : 0.72 + random() * 0.22;
   const glowY = 0.16 + random() * 0.36;
   const lineAngle = -0.32 + random() * 0.7;
@@ -319,26 +385,87 @@ function drawFallbackPixels(drama, kind) {
       addColor(base, palette[1], stageGlow * 0.24);
       addColor(base, palette[3], slash * 0.16);
 
+      if (profile.scene === 'city' || profile.scene === 'neon' || profile.scene === 'office') {
+        const skylineY = poster ? 0.54 : 0.46;
+        for (let tower = 0; tower < 7; tower += 1) {
+          const left = (poster ? 0.08 : 0.42) + tower * (poster ? 0.13 : 0.075);
+          const top = skylineY - ((hashString(`${seed}:tower:${tower}`) % 120) / 1000 + (poster ? 0.08 : 0.12));
+          const building = rectFill(nx, ny, left, top, left + (poster ? 0.09 : 0.055), 0.92, 0.004);
+          if (building > 0) {
+            darken(base, building * (profile.scene === 'office' ? 0.34 : 0.22));
+            const windowOn = ((x >> 3) + (y >> 4) + tower + seed) % (profile.scene === 'office' ? 4 : 5) === 0;
+            if (windowOn && ny > top + 0.018 && ny < 0.76) blendColor(base, palette[3], building * 0.2);
+          }
+        }
+      }
+
+      if (profile.scene === 'palace') {
+        const moon = ellipseFill(nx, ny, poster ? 0.72 : 0.78, 0.18, poster ? 0.11 : 0.07, poster ? 0.11 : 0.12, 0.05);
+        blendColor(base, [255, 221, 166], moon * 0.45);
+        const arch = ellipseRing(nx, ny, poster ? 0.5 : 0.72, poster ? 0.54 : 0.5, poster ? 0.38 : 0.22, poster ? 0.5 : 0.42, 0.045);
+        blendColor(base, palette[3], arch * 0.22);
+        const eave = lineGlow(nx, ny, poster ? 0.13 : 0.48, poster ? 0.2 : 0.23, poster ? 0.88 : 0.94, poster ? 0.16 : 0.2, 0.012);
+        blendColor(base, palette[3], eave * 0.3);
+      }
+
+      if (profile.scene === 'clock') {
+        const ringX = poster ? 0.52 : 0.74;
+        const ringY = poster ? 0.38 : 0.4;
+        const ring = ellipseRing(nx, ny, ringX, ringY, poster ? 0.28 : 0.16, poster ? 0.28 : 0.26, 0.035);
+        const innerRing = ellipseRing(nx, ny, ringX, ringY, poster ? 0.18 : 0.1, poster ? 0.18 : 0.17, 0.03);
+        blendColor(base, [255, 190, 128], ring * 0.28 + innerRing * 0.2);
+        for (let tick = 0; tick < 12; tick += 1) {
+          const angle = (Math.PI * 2 * tick) / 12;
+          const tx = ringX + Math.cos(angle) * (poster ? 0.28 : 0.16);
+          const ty = ringY + Math.sin(angle) * (poster ? 0.28 : 0.26);
+          const mark = ellipseFill(nx, ny, tx, ty, 0.006, 0.01, 0.02);
+          blendColor(base, palette[3], mark * 0.35);
+        }
+        const handA = lineGlow(nx, ny, ringX, ringY, ringX + (poster ? 0.13 : 0.08), ringY - (poster ? 0.11 : 0.1), 0.008);
+        const handB = lineGlow(nx, ny, ringX, ringY, ringX - (poster ? 0.1 : 0.06), ringY + (poster ? 0.04 : 0.05), 0.006);
+        blendColor(base, palette[3], Math.max(handA, handB) * 0.42);
+      }
+
       if (poster) {
-        const body = Math.pow((nx - centerX) / 0.18, 2) + Math.pow((ny - 0.58) / 0.34, 2);
-        const head = Math.pow((nx - centerX) / 0.1, 2) + Math.pow((ny - 0.31) / 0.11, 2);
-        const shoulder = Math.pow((nx - centerX) / 0.28, 2) + Math.pow((ny - 0.52) / 0.13, 2);
-        const silhouette = Math.max(0, 1 - Math.min(body, head * 0.9, shoulder * 0.8));
-        base[0] *= 1 - silhouette * 0.58;
-        base[1] *= 1 - silhouette * 0.62;
-        base[2] *= 1 - silhouette * 0.5;
+        const secondCx = profile.type === 'romance' ? centerX + 0.11 : centerX + 0.08;
+        const secondMask =
+          profile.type === 'romance' || profile.type === 'ancient'
+            ? characterMask(nx, ny, secondCx, centerY + 0.025, 0.78, 0.82) * 0.85
+            : 0;
+        const mainMask = characterMask(nx, ny, profile.type === 'romance' ? centerX - 0.08 : centerX, centerY, profile.type === 'ancient' ? 1.08 : 0.96, profile.type === 'queen' ? 0.9 : 1);
+        const silhouette = Math.max(mainMask, secondMask);
+        darken(base, silhouette * 0.76);
+        const rim = Math.max(
+          characterRim(nx, ny, profile.type === 'romance' ? centerX - 0.08 : centerX, centerY, profile.type === 'ancient' ? 1.08 : 0.96, profile.type === 'queen' ? 0.9 : 1),
+          profile.type === 'romance' || profile.type === 'ancient' ? characterRim(nx, ny, secondCx, centerY + 0.025, 0.78, 0.82) : 0,
+        );
+        blendColor(base, palette[3], rim * 0.42);
+
+        if (profile.type === 'queen') {
+          const crown = Math.max(
+            lineGlow(nx, ny, centerX - 0.055, centerY - 0.08, centerX, centerY - 0.135, 0.01),
+            lineGlow(nx, ny, centerX, centerY - 0.135, centerX + 0.055, centerY - 0.08, 0.01),
+          );
+          blendColor(base, palette[3], crown * 0.55);
+        }
 
         const frame = smoothStep(0.08, 0.1, nx) * smoothStep(0.92, 0.9, nx) * smoothStep(0.07, 0.09, ny);
         addColor(base, palette[3], frame * 0.03);
         if (nx > 0.16 && nx < 0.84 && Math.abs(ny - 0.1) < 0.0025) addColor(base, palette[3], 0.35);
         if (nx > 0.2 && nx < 0.78 && Math.abs(ny - 0.84) < 0.003) addColor(base, palette[0], 0.22);
       } else {
-        const heroBody = Math.pow((nx - centerX) / 0.14, 2) + Math.pow((ny - 0.56) / 0.42, 2);
-        const heroHead = Math.pow((nx - centerX) / 0.07, 2) + Math.pow((ny - 0.29) / 0.09, 2);
-        const silhouette = Math.max(0, 1 - Math.min(heroBody, heroHead));
-        base[0] *= 1 - silhouette * 0.56;
-        base[1] *= 1 - silhouette * 0.62;
-        base[2] *= 1 - silhouette * 0.45;
+        const mainMask = characterMask(nx, ny, centerX, centerY, profile.type === 'ancient' ? 0.92 : 0.82, profile.type === 'queen' ? 0.85 : 1);
+        const companionMask =
+          profile.type === 'romance' || profile.type === 'ancient'
+            ? characterMask(nx, ny, centerX - 0.13, centerY + 0.035, 0.64, 0.8) * 0.78
+            : 0;
+        const silhouette = Math.max(mainMask, companionMask);
+        darken(base, silhouette * 0.72);
+        const rim = Math.max(
+          characterRim(nx, ny, centerX, centerY, profile.type === 'ancient' ? 0.92 : 0.82, profile.type === 'queen' ? 0.85 : 1),
+          profile.type === 'romance' || profile.type === 'ancient' ? characterRim(nx, ny, centerX - 0.13, centerY + 0.035, 0.64, 0.8) : 0,
+        );
+        blendColor(base, palette[3], rim * 0.38);
 
         const leftReadability = smoothStep(0.54, 0.08, nx);
         base[0] *= 1 - leftReadability * 0.42;
