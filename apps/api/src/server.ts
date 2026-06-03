@@ -8,6 +8,9 @@ import { adminAnalyticsRouter, analyticsRouter } from './routes/analytics.js';
 import { aiRouter } from './routes/ai.js';
 import { adminDashboardRouter } from './routes/dashboard.js';
 import { adminDemoAssetsRouter } from './routes/demoAssets.js';
+import { authRouter } from './routes/auth.js';
+import { cloudRouter } from './routes/cloud.js';
+import { paymentRouter, stripeWebhookHandler } from './routes/payments.js';
 import { publicRouter } from './routes/public.js';
 import { uploadRouter } from './routes/upload.js';
 
@@ -28,6 +31,7 @@ app.use(
     credentials: true,
   }),
 );
+app.post('/api/payments/stripe/webhook', express.raw({ type: 'application/json', limit: '2mb' }), stripeWebhookHandler);
 app.use(express.json({ limit: '2mb' }));
 app.use(
   '/uploads',
@@ -41,6 +45,9 @@ app.use(
 
 app.get('/health', (_req, res) => res.json({ ok: true }));
 app.use('/api', publicRouter);
+app.use('/api/auth', authRouter);
+app.use('/api/cloud', cloudRouter);
+app.use('/api/payments', paymentRouter);
 app.use('/api/admin/upload', uploadRouter);
 app.use('/api/admin/ai', aiRouter);
 app.use('/api/admin/analytics', adminAnalyticsRouter);

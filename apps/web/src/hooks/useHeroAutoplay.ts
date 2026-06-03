@@ -3,10 +3,11 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 type UseHeroAutoplayOptions = {
   length: number;
   intervalMs?: number;
+  enabled?: boolean;
   onAutoSwitch?: (nextIndex: number, previousIndex: number) => void;
 };
 
-export function useHeroAutoplay({ length, intervalMs = 5200, onAutoSwitch }: UseHeroAutoplayOptions) {
+export function useHeroAutoplay({ length, intervalMs = 5200, enabled = true, onAutoSwitch }: UseHeroAutoplayOptions) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [paused, setPaused] = useState(false);
   const timerKeyRef = useRef(0);
@@ -42,7 +43,7 @@ export function useHeroAutoplay({ length, intervalMs = 5200, onAutoSwitch }: Use
   );
 
   useEffect(() => {
-    if (paused || length <= 1) return undefined;
+    if (!enabled || paused || length <= 1) return undefined;
     const key = timerKeyRef.current;
     const timer = window.setTimeout(() => {
       if (key !== timerKeyRef.current) return;
@@ -55,7 +56,7 @@ export function useHeroAutoplay({ length, intervalMs = 5200, onAutoSwitch }: Use
     }, intervalMs);
 
     return () => window.clearTimeout(timer);
-  }, [currentIndex, intervalMs, length, paused]);
+  }, [currentIndex, enabled, intervalMs, length, paused]);
 
   return {
     currentIndex,

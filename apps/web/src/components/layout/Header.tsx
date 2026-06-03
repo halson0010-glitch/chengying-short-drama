@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
+import { Link, NavLink, useLocation } from 'react-router-dom';
 import PageContainer from '../common/PageContainer';
 import { CloseIcon, SearchIcon } from '../common/Icons';
 import SearchBox from '../search/SearchBox';
+import { useAuth } from '../../contexts/AuthContext';
 import DownloadPopover from './DownloadPopover';
 import Logo from './Logo';
 
@@ -13,6 +14,7 @@ const navItems = [
 
 export default function Header() {
   const location = useLocation();
+  const { user, logout } = useAuth();
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
 
   useEffect(() => {
@@ -40,6 +42,33 @@ export default function Header() {
           ))}
         </nav>
         <SearchBox className="hidden md:block" />
+        <div className="hidden items-center gap-2 md:flex">
+          {user ? (
+            <>
+              <Link
+                to="/account"
+                className="max-w-[148px] truncate rounded-full border border-white/[0.08] bg-white/[0.05] px-4 py-2 text-sm text-white/70 transition hover:border-accent/45 hover:text-white"
+                title={user.email}
+              >
+                {user.email}
+              </Link>
+              <button
+                type="button"
+                onClick={logout}
+                className="rounded-full px-3 py-2 text-sm text-white/45 transition hover:bg-white/[0.05] hover:text-white"
+              >
+                退出
+              </button>
+            </>
+          ) : (
+            <Link
+              to="/login"
+              className="rounded-full border border-white/[0.08] bg-white/[0.05] px-4 py-2 text-sm font-semibold text-white/72 transition hover:border-accent/45 hover:text-white"
+            >
+              登录
+            </Link>
+          )}
+        </div>
         <button
           type="button"
           onClick={() => setMobileSearchOpen((open) => !open)}
@@ -51,6 +80,12 @@ export default function Header() {
         <div className="hidden sm:block">
           <DownloadPopover />
         </div>
+        <Link
+          to={user ? '/account' : '/login'}
+          className="flex h-10 shrink-0 items-center rounded-full border border-white/[0.08] bg-white/[0.05] px-3 text-xs font-semibold text-white/70 transition hover:border-accent/45 hover:text-white md:hidden"
+        >
+          {user ? '我的' : '登录'}
+        </Link>
       </PageContainer>
       {mobileSearchOpen && (
         <div className="border-t border-white/[0.06] bg-[#101014]/96 px-4 py-3 md:hidden">

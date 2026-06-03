@@ -632,3 +632,90 @@ npm run db:push
 ```
 
 正式环境建议使用 Prisma migration，而不是直接 `db push`。
+# 本轮新增：上线前业务接入骨架
+
+## 首页 Hero 与 Demo 素材
+
+- 首页开屏固定取 5 部 featured 短剧，优先读取 `apps/web/public/demo-assets/generated-assets.json` 中的 `hero` / `poster`。
+- manifest 会记录每张图来源：`openai:gpt-image-2`、`openai:gpt-image-1` 或 `local-fallback`。
+- 如果你要把五部开屏素材换成真实 AI 图，在本地配置 OpenAI Key 后运行：
+
+```powershell
+$env:OPENAI_API_KEY="你的 key"
+$env:OPENAI_IMAGE_MODEL="gpt-image-2"
+npm run generate:demo-assets -- --featured=5 --force --quality=low
+```
+
+- 没有 OpenAI Key 时仍可用 fallback 图：
+
+```bash
+npm run generate:demo-assets -- --fallback-only --all --force
+```
+
+## 用户邮箱注册 / 登录
+
+后端新增：
+
+- `POST /api/auth/register`
+- `POST /api/auth/login`
+- `GET /api/auth/me`
+
+前端新增：
+
+- `/login`
+- `/register`
+- `/account`
+
+本地 API 模式下，注册数据会写入 Prisma `User` 表。纯前端预览且未配置 `VITE_API_BASE_URL` 时，会进入 localStorage 演示模式，仅用于静态页面验收。
+
+## Stripe 支付骨架
+
+后端新增：
+
+- `POST /api/payments/stripe/checkout`
+- `POST /api/payments/stripe/webhook`
+- `GET /api/payments/me`
+
+需要在 `apps/api/.env` 配置：
+
+```env
+STRIPE_SECRET_KEY=
+STRIPE_PUBLISHABLE_KEY=
+STRIPE_WEBHOOK_SECRET=
+```
+
+未配置 `STRIPE_SECRET_KEY` 时，接口会返回 “Stripe is not configured”，不会影响项目启动。配置后会尝试创建 Stripe Checkout Session，并把记录写入 `PaymentRecord` 表。
+
+## 阿里云服务骨架
+
+本轮只预留阿里云服务适配，不把阿里云和支付宝混为一体：
+
+- 阿里云 OSS：对象存储服务骨架。
+- 阿里云 SMS：短信服务配置状态预留。
+- 支付宝：未来作为单独 payment provider 接入。
+
+后端新增：
+
+- `GET /api/cloud/aliyun/status`
+- `POST /api/cloud/aliyun/oss/presign-placeholder`
+
+需要在 `apps/api/.env` 配置：
+
+```env
+ALIYUN_OSS_REGION=
+ALIYUN_OSS_BUCKET=
+ALIYUN_ACCESS_KEY_ID=
+ALIYUN_ACCESS_KEY_SECRET=
+ALIYUN_SMS_SIGN_NAME=
+ALIYUN_SMS_TEMPLATE_CODE=
+```
+
+当前占位接口不会返回密钥。正式上传大视频仍建议使用对象存储 + CDN + 预签名 URL，不建议让 Express API 直接承载大视频流量。
+
+## 本地数据库更新
+
+本轮新增 `User` 和 `PaymentRecord` 表。更新后请执行：
+
+```bash
+npm run db:push
+```

@@ -13,6 +13,9 @@ type HeroShowcaseProps = {
   dramas: Drama[];
 };
 
+let heroIntroPlayed = false;
+let heroIntroStarted = false;
+
 function AssetDebugOverlay({ drama }: { drama: Drama }) {
   const hero = resolveDramaHeroAsset(drama);
   const poster = resolveDramaPosterAsset(drama);
@@ -32,21 +35,30 @@ function AssetDebugOverlay({ drama }: { drama: Drama }) {
 
 export default function HeroShowcase({ dramas }: HeroShowcaseProps) {
   const [transitionSeed, setTransitionSeed] = useState(0);
-  const [introFinished, setIntroFinished] = useState(false);
+  const [introFinished, setIntroFinished] = useState(() => heroIntroPlayed || heroIntroStarted);
   const previousIndexRef = useRef(0);
   const safeDramas = useMemo(() => dramas.slice(0, 5), [dramas]);
   const debugAssets = import.meta.env.VITE_DEBUG_ASSETS === 'true';
 
-  usePreloadHeroAssets(safeDramas);
+  const preloadedAssets = usePreloadHeroAssets(safeDramas);
 
   useEffect(() => {
-    const timer = window.setTimeout(() => setIntroFinished(true), 2200);
+    if (heroIntroPlayed || heroIntroStarted) {
+      setIntroFinished(true);
+      return undefined;
+    }
+    heroIntroStarted = true;
+    const timer = window.setTimeout(() => {
+      heroIntroPlayed = true;
+      setIntroFinished(true);
+    }, 2200);
     return () => window.clearTimeout(timer);
   }, []);
 
   const { currentIndex, selectIndex, pause, resume } = useHeroAutoplay({
     length: safeDramas.length,
     intervalMs: 5400,
+    enabled: introFinished && preloadedAssets.ready,
     onAutoSwitch: (nextIndex, previousIndex) => {
       previousIndexRef.current = previousIndex;
       setTransitionSeed((value) => value + 1);

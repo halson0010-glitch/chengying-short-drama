@@ -22,6 +22,34 @@ function fillRail(source: Drama[], fallback: Drama[], limit = 12) {
   return merged.slice(0, limit);
 }
 
+function PlatformSignalStrip({ dramas }: { dramas: Drama[] }) {
+  const publishedCount = dramas.length;
+  const totalEpisodes = dramas.reduce((sum, drama) => sum + drama.totalEpisodes, 0);
+  const newestCount = dramas.filter((drama) => drama.updatedWithinDays <= 14).length;
+  const featuredCount = dramas.filter((drama) => drama.featured).length || Math.min(5, dramas.length);
+  const stats = [
+    { label: '精选片库', value: `${publishedCount}+`, hint: '短剧模板可预览' },
+    { label: '剧集总量', value: `${totalEpisodes}+`, hint: '覆盖竖屏播放链路' },
+    { label: '近期上新', value: `${newestCount}`, hint: '后台发布后优先展示' },
+    { label: '开屏推荐', value: `${featuredCount}`, hint: '五部沉浸式切换' },
+  ];
+
+  return (
+    <div className="mt-7 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      {stats.map((item) => (
+        <div
+          key={item.label}
+          className="group rounded-3xl border border-white/[0.08] bg-white/[0.045] p-5 shadow-[0_18px_48px_rgba(0,0,0,0.22)] transition duration-200 hover:-translate-y-1 hover:border-accent/35 hover:bg-white/[0.07]"
+        >
+          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-white/38">{item.label}</p>
+          <p className="mt-3 text-3xl font-black text-white">{item.value}</p>
+          <p className="mt-2 text-sm text-white/48">{item.hint}</p>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export default function HomePage() {
   const [dramas, setDramas] = useState<Drama[]>([]);
   const [loading, setLoading] = useState(true);
@@ -133,6 +161,7 @@ export default function HomePage() {
   return (
     <PageContainer className="pb-4 pt-6 md:pt-8">
       {loading ? <div className="surface h-[560px] animate-pulse bg-white/[0.03]" /> : <HeroShowcase dramas={heroDramas} />}
+      {!loading && <PlatformSignalStrip dramas={dramas} />}
       <RevealSection className="mt-14 md:mt-16" title="热门短剧" subtitle="本周观众正在追的精彩故事">
         <DramaGrid dramas={hotDramas} moduleName="热门短剧" reveal />
       </RevealSection>

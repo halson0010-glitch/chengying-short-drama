@@ -52,9 +52,11 @@ export default function HeroBackgroundStage({
   revealKey,
   introActive,
 }: HeroBackgroundStageProps) {
+  const showPrevious = Boolean(previous && previous.id !== current.id && !introActive);
+
   return (
     <div className="absolute inset-0 overflow-hidden">
-      <HeroImageLayer drama={previous ?? current} className="hero-bg-previous" />
+      {showPrevious && <HeroImageLayer drama={previous ?? current} className="hero-bg-previous" />}
       <HeroImageLayer
         key={revealKey}
         drama={current}

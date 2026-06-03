@@ -41,6 +41,19 @@ export const config = {
     apiKey: process.env.OPENAI_API_KEY || '',
     imageModel: process.env.OPENAI_IMAGE_MODEL || 'gpt-image-2',
   },
+  stripe: {
+    secretKey: process.env.STRIPE_SECRET_KEY || '',
+    publishableKey: process.env.STRIPE_PUBLISHABLE_KEY || '',
+    webhookSecret: process.env.STRIPE_WEBHOOK_SECRET || '',
+  },
+  aliyun: {
+    ossRegion: process.env.ALIYUN_OSS_REGION || '',
+    ossBucket: process.env.ALIYUN_OSS_BUCKET || '',
+    accessKeyId: process.env.ALIYUN_ACCESS_KEY_ID || '',
+    accessKeySecret: process.env.ALIYUN_ACCESS_KEY_SECRET || '',
+    smsSignName: process.env.ALIYUN_SMS_SIGN_NAME || '',
+    smsTemplateCode: process.env.ALIYUN_SMS_TEMPLATE_CODE || '',
+  },
   s3: {
     endpoint: process.env.S3_ENDPOINT || '',
     bucket: process.env.S3_BUCKET || '',

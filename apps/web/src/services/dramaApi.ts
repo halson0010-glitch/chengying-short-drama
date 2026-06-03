@@ -110,13 +110,20 @@ async function prepareDrama(drama?: Drama) {
 }
 
 async function fetchJson<T>(path: string): Promise<T> {
-  const response = await fetch(`${apiBaseUrl}${path}`, {
-    headers: { Accept: 'application/json' },
-  });
-  if (!response.ok) {
-    throw new Error(`Drama API request failed with status ${response.status}`);
+  const controller = new AbortController();
+  const timeout = window.setTimeout(() => controller.abort(), 2500);
+  try {
+    const response = await fetch(`${apiBaseUrl}${path}`, {
+      headers: { Accept: 'application/json' },
+      signal: controller.signal,
+    });
+    if (!response.ok) {
+      throw new Error(`Drama API request failed with status ${response.status}`);
+    }
+    return response.json() as Promise<T>;
+  } finally {
+    window.clearTimeout(timeout);
   }
-  return response.json() as Promise<T>;
 }
 
 export function isRemoteDramaMode() {
