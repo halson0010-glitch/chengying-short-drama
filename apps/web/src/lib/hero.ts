@@ -28,6 +28,18 @@ export type ResolvedDramaAsset = {
   manifestLoaded: boolean;
 };
 
+const posterObjectPositionOverrides: Record<string, string> = {
+  'ember-vow': '46% center',
+};
+
+const heroObjectPositionOverrides: Record<string, string> = {
+  'ember-vow': '55% center',
+  'neon-crown': '54% center',
+  'hidden-chairman': '56% center',
+  'moon-scroll': '54% center',
+  'missing-minute': '55% center',
+};
+
 function firstDefined<T>(...values: Array<T | undefined>) {
   return values.find((value) => Boolean(value));
 }
@@ -118,4 +130,12 @@ export function getDramaHeroBackground(drama: Drama) {
 
 export function getDramaHeroBackgroundFallback(drama: Drama) {
   return firstDefined(...resolveDramaHeroAsset(drama).candidates.slice(1).map((candidate) => candidate.src));
+}
+
+export function getDramaPosterObjectPosition(drama: Drama) {
+  return drama.posterObjectPosition || posterObjectPositionOverrides[drama.id] || 'center center';
+}
+
+export function getDramaHeroObjectPosition(drama: Drama) {
+  return drama.heroObjectPosition || heroObjectPositionOverrides[drama.id] || '55% center';
 }

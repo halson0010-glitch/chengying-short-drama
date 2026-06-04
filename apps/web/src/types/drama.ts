@@ -28,6 +28,8 @@ export type Drama = {
   gradient: string;
   posterImage?: string;
   heroBackgroundImage?: string;
+  posterObjectPosition?: string;
+  heroObjectPosition?: string;
   visualTone?: string;
   featured?: boolean;
   featuredOrder?: number;

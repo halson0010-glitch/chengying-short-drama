@@ -46,6 +46,11 @@ export default function LoginPage() {
         <p className="mt-3 text-sm leading-6 text-white/55">
           登录后可以保留收藏、支付记录和后续观看权益。{isAuthApiConfigured() ? '当前使用后端 API。' : '当前为纯前端本地演示模式。'}
         </p>
+        {!isAuthApiConfigured() && (
+          <p className="mt-5 rounded-2xl border border-amber-300/20 bg-amber-400/10 px-4 py-3 text-sm leading-6 text-amber-100">
+            当前未连接真实 API，登录 / 注册仅为本地演示，不会写入后端数据库。请配置 VITE_API_BASE_URL 后再验收真实注册。
+          </p>
+        )}
         <form className="mt-8 space-y-4" onSubmit={handleSubmit}>
           <label className="block text-sm text-white/70">
             邮箱

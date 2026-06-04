@@ -22,7 +22,14 @@ export type AnalyticsEventName =
   | 'search_result_click'
   | 'search_no_result'
   | 'favorite_toggle'
-  | 'download_popover_open';
+  | 'download_popover_open'
+  | 'payment_checkout_start'
+  | 'payment_checkout_created'
+  | 'payment_checkout_redirect'
+  | 'payment_success_page_view'
+  | 'payment_cancel_page_view'
+  | 'payment_failed'
+  | 'payment_not_configured';
 
 export type AnalyticsEvent = {
   event: AnalyticsEventName;

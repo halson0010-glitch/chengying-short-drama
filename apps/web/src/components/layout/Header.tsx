@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
 import PageContainer from '../common/PageContainer';
 import { CloseIcon, SearchIcon } from '../common/Icons';
 import SearchBox from '../search/SearchBox';
-import { useAuth } from '../../contexts/AuthContext';
 import DownloadPopover from './DownloadPopover';
 import Logo from './Logo';
 

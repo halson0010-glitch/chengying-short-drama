@@ -3,11 +3,14 @@ import cors from 'cors';
 import express from 'express';
 import helmet from 'helmet';
 import { config } from './config.js';
+import { prisma } from './prisma.js';
+import { rateLimit } from './middleware/rateLimit.js';
 import { adminRouter } from './routes/admin.js';
 import { adminAnalyticsRouter, analyticsRouter } from './routes/analytics.js';
 import { aiRouter } from './routes/ai.js';
 import { adminDashboardRouter } from './routes/dashboard.js';
 import { adminDemoAssetsRouter } from './routes/demoAssets.js';
+import { adminPaymentsRouter } from './routes/adminPayments.js';
 import { authRouter } from './routes/auth.js';
 import { cloudRouter } from './routes/cloud.js';
 import { paymentRouter, stripeWebhookHandler } from './routes/payments.js';
@@ -31,6 +34,15 @@ app.use(
     credentials: true,
   }),
 );
+app.use(
+  '/api',
+  rateLimit({
+    windowMs: config.rateLimit.globalWindowMs,
+    max: config.rateLimit.globalMax,
+    keyPrefix: 'global-api',
+    message: 'Too many API requests. Please slow down.',
+  }),
+);
 app.post('/api/payments/stripe/webhook', express.raw({ type: 'application/json', limit: '2mb' }), stripeWebhookHandler);
 app.use(express.json({ limit: '2mb' }));
 app.use(
@@ -43,7 +55,17 @@ app.use(
   }),
 );
 
-app.get('/health', (_req, res) => res.json({ ok: true }));
+async function healthCheck(_req: express.Request, res: express.Response) {
+  try {
+    await prisma.$queryRaw`SELECT 1`;
+    return res.json({ ok: true, db: 'connected', time: new Date().toISOString() });
+  } catch {
+    return res.status(503).json({ ok: false, db: 'disconnected', time: new Date().toISOString() });
+  }
+}
+
+app.get('/health', healthCheck);
+app.get('/api/health', healthCheck);
 app.use('/api', publicRouter);
 app.use('/api/auth', authRouter);
 app.use('/api/cloud', cloudRouter);
@@ -53,6 +75,7 @@ app.use('/api/admin/ai', aiRouter);
 app.use('/api/admin/analytics', adminAnalyticsRouter);
 app.use('/api/admin/dashboard', adminDashboardRouter);
 app.use('/api/admin/demo-assets', adminDemoAssetsRouter);
+app.use('/api/admin/payments', adminPaymentsRouter);
 app.use('/api/admin', adminRouter);
 app.use('/api/analytics', analyticsRouter);
 

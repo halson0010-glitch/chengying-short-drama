@@ -17,6 +17,35 @@ cloudRouter.get('/aliyun/status', (_req, res) => {
   res.json(getAliyunIntegrationStatus());
 });
 
+cloudRouter.get('/aliyun/oss/sts', requireUser, (_req, res) => {
+  const status = getAliyunIntegrationStatus();
+  if (config.storageProvider !== 'aliyun-oss') {
+    return res.status(501).json({
+      message: 'Aliyun OSS STS is not enabled. Set STORAGE_PROVIDER=aliyun-oss before using OSS browser uploads.',
+      storageProvider: config.storageProvider,
+      configured: false,
+    });
+  }
+  if (!status.storage.configured) {
+    return res.status(501).json({
+      message: 'Aliyun OSS is not configured. Set ALIYUN_OSS_REGION, ALIYUN_OSS_BUCKET and access keys first.',
+      configured: false,
+    });
+  }
+
+  return res.status(501).json({
+    message: 'Aliyun STS SDK is not connected yet. Implement AssumeRole on the API before exposing browser uploads.',
+    configured: true,
+    region: config.aliyun.ossRegion,
+    bucket: config.aliyun.ossBucket,
+    uploadPrefix: 'chengying/uploads/',
+    accessKeyId: null,
+    accessKeySecret: null,
+    stsToken: null,
+    expiration: null,
+  });
+});
+
 cloudRouter.post('/aliyun/oss/presign-placeholder', requireUser, validateBody(presignPlaceholderSchema), (req, res) => {
   const status = getAliyunIntegrationStatus();
   if (!status.storage.configured) {

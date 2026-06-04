@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { track } from '../../lib/analytics';
-import { getDramaPosterFallbackImage, getDramaPosterImage } from '../../lib/hero';
+import { getDramaPosterFallbackImage, getDramaPosterImage, getDramaPosterObjectPosition } from '../../lib/hero';
 import type { Drama } from '../../types/drama';
 import GradientButton from '../common/GradientButton';
 import { ChevronDownIcon, PlayIcon } from '../common/Icons';
@@ -92,6 +92,7 @@ export default function HeroSection({ dramas }: HeroSectionProps) {
                 title={drama.title}
                 posterUrl={getDramaPosterImage(drama)}
                 fallbackPosterUrl={getDramaPosterFallbackImage(drama)}
+                objectPosition={getDramaPosterObjectPosition(drama)}
                 tags={drama.tags}
                 showPlay={false}
                 className={`rounded-xl border ${

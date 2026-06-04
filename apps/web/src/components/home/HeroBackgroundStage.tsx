@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { Drama } from '../../types/drama';
-import { resolveDramaHeroAsset } from '../../lib/hero';
+import { getDramaHeroObjectPosition, resolveDramaHeroAsset } from '../../lib/hero';
+import HeroIntroFragments from './HeroIntroFragments';
 
 type HeroBackgroundStageProps = {
   current: Drama;
@@ -37,6 +38,7 @@ function HeroImageLayer({
       aria-hidden="true"
       data-src-debug={active.src}
       data-source-debug={active.source}
+      style={{ objectPosition: getDramaHeroObjectPosition(drama) }}
       className={`hero-bg-image ${className}`}
       onError={() => {
         if (activeIndex < asset.candidates.length - 1) setActiveIndex((index) => index + 1);
@@ -69,6 +71,7 @@ export default function HeroBackgroundStage({
       <div className="hero-floor-glow" />
       {introActive && (
         <>
+          <HeroIntroFragments drama={current} active={introActive} />
           <div className="hero-film-intro" aria-hidden="true" />
           <div className="hero-soft-projector-light" aria-hidden="true" />
         </>

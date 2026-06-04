@@ -48,6 +48,11 @@ export default function RegisterPage() {
         <p className="mt-3 text-sm leading-6 text-white/55">
           注册数据会在 API 模式写入后端 User 表。{isAuthApiConfigured() ? '当前已连接 API。' : '当前为本地演示模式。'}
         </p>
+        {!isAuthApiConfigured() && (
+          <p className="mt-5 rounded-2xl border border-amber-300/20 bg-amber-400/10 px-4 py-3 text-sm leading-6 text-amber-100">
+            当前未连接真实 API，注册仅为本地演示，不会写入数据库。请配置 VITE_API_BASE_URL=http://localhost:4000 后再验收真实注册。
+          </p>
+        )}
         <form className="mt-8 space-y-4" onSubmit={handleSubmit}>
           <label className="block text-sm text-white/70">
             邮箱

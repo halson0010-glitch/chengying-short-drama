@@ -8,6 +8,7 @@ const navItems = [
   { to: '/uploads', label: '上传文件' },
   { to: '/demo-assets', label: 'Demo 素材状态' },
   { to: '/visual-generator', label: '视觉素材 / AI 生图' },
+  { to: '/payments', label: '支付流水' },
   { to: '/analytics', label: '埋点概览' },
   { to: '/analytics/search-keywords', label: '搜索词统计' },
   { to: '/analytics/drama-clicks', label: '点击排行' },

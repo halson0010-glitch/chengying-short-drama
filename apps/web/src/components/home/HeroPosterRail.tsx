@@ -1,6 +1,6 @@
 import type { CSSProperties } from 'react';
+import { getDramaPosterObjectPosition, resolveDramaPosterAsset } from '../../lib/hero';
 import type { Drama } from '../../types/drama';
-import { resolveDramaPosterAsset } from '../../lib/hero';
 import MockPoster from '../drama/MockPoster';
 
 type HeroPosterRailProps = {
@@ -24,7 +24,7 @@ export default function HeroPosterRail({
 }: HeroPosterRailProps) {
   return (
     <div
-      className="hero-poster-rail rail-scroll flex snap-x gap-3 overflow-x-auto pb-2"
+      className="hero-poster-rail rail-scroll flex snap-x gap-3 overflow-x-auto pb-2 lg:justify-end lg:gap-4"
       onMouseEnter={onPause}
       onMouseLeave={onResume}
       onFocus={onPause}
@@ -40,7 +40,7 @@ export default function HeroPosterRail({
             onClick={() => onSelect(index)}
             aria-label={`切换推荐至 ${drama.title}`}
             aria-pressed={selected}
-            className={`hero-thumb group w-[104px] shrink-0 snap-start text-left transition duration-300 sm:w-[116px] lg:w-[124px] ${
+            className={`hero-thumb group w-[104px] shrink-0 snap-start text-left transition duration-300 sm:w-[116px] lg:w-[132px] xl:w-[142px] ${
               selected ? 'is-active opacity-100' : 'opacity-60 hover:opacity-100'
             }`}
             style={{
@@ -54,6 +54,7 @@ export default function HeroPosterRail({
               posterUrl={posterAsset.src}
               posterCandidates={posterAsset.candidates.map((candidate) => candidate.src)}
               assetSource={String(posterAsset.source)}
+              objectPosition={getDramaPosterObjectPosition(drama)}
               tags={drama.tags}
               showPlay={false}
               className={`rounded-2xl border transition duration-300 ${

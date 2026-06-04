@@ -7,6 +7,9 @@ export type DemoAssetItem = {
   hero?: string;
   posterSource?: string;
   heroSource?: string;
+  posterVersion?: string;
+  heroVersion?: string;
+  version?: string;
   posterIsExtra?: boolean;
 };
 
@@ -24,6 +27,9 @@ export type DemoAssetsManifest = {
     requestedPosters?: number;
     requestedHeroes?: number;
     mockDramaCount?: number;
+    source?: string;
+    importSourceDir?: string;
+    manualImported?: number;
   };
   assets?: Record<string, DemoAssetItem>;
   featured?: Array<{ id: string; title?: string; poster?: string; hero?: string }>;
@@ -61,9 +67,20 @@ export function getDirectDemoAssetPath(dramaId: string, kind: 'poster' | 'hero')
   return `/demo-assets/${directory}/${dramaId}.png`;
 }
 
+function withManifestVersion(path?: string, version?: string) {
+  if (!path) return undefined;
+  const assetVersion = version || manifest?.generatedAt;
+  if (!assetVersion) return path;
+  const separator = path.includes('?') ? '&' : '?';
+  return `${path}${separator}v=${encodeURIComponent(assetVersion)}`;
+}
+
 export function getDemoAssetPath(drama: Pick<Drama, 'id'>, kind: 'poster' | 'hero') {
   const asset = manifest?.assets?.[drama.id];
-  return kind === 'poster' ? asset?.poster : asset?.hero;
+  if (!asset) return undefined;
+  return kind === 'poster'
+    ? withManifestVersion(asset.poster, asset.posterVersion || asset.version)
+    : withManifestVersion(asset.hero, asset.heroVersion || asset.version);
 }
 
 export function getDemoAssetSource(drama: Pick<Drama, 'id'>, kind: 'poster' | 'hero') {

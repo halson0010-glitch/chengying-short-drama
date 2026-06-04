@@ -84,34 +84,102 @@ model AdminUser {
 }
 
 model User {
-  id           String          @id @default(cuid())
-  email        String          @unique
-  passwordHash String
-  status       String          @default("active")
-  createdAt    DateTime        @default(now())
-  updatedAt    DateTime        @updatedAt
-  payments     PaymentRecord[]
+  id                 String              @id @default(cuid())
+  email              String              @unique
+  passwordHash       String
+  status             String              @default("active")
+  emailVerifiedAt    DateTime?
+  lastLoginAt        DateTime?
+  failedLoginCount   Int                 @default(0)
+  lockUntil          DateTime?
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  payments           PaymentRecord[]
+  entitlements       UserEntitlement[]
 
   @@index([email])
   @@index([createdAt])
 }
 
+model EmailVerificationToken {
+  id        String   @id @default(cuid())
+  userId    String
+  tokenHash String
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([tokenHash])
+  @@index([expiresAt])
+}
+
 model PaymentRecord {
-  id                String   @id @default(cuid())
-  userId            String?
-  provider          String
-  amount            Int
-  currency          String   @default("cny")
-  status            String   @default("created")
-  providerSessionId String?
-  providerPaymentId String?
-  metadataJson      String?
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-  user              User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  id                    String            @id @default(cuid())
+  userId                String?
+  provider              String
+  amount                Int
+  currency              String            @default("cny")
+  status                String            @default("created")
+  providerSessionId     String?
+  providerPaymentId     String?
+  paidAt                DateTime?
+  failedAt              DateTime?
+  canceledAt            DateTime?
+  paymentMethod         String?
+  providerCustomerEmail String?
+  providerCustomerId    String?
+  providerPaymentStatus String?
+  failureCode           String?
+  failureMessage        String?
+  checkoutUrl           String?
+  rawWebhookEventId     String?
+  rawWebhookType        String?
+  metadataJson          String?
+  createdAt             DateTime          @default(now())
+  updatedAt             DateTime          @updatedAt
+  user                  User?             @relation(fields: [userId], references: [id], onDelete: SetNull)
+  events                PaymentEvent[]
+  entitlements          UserEntitlement[]
 
   @@index([userId])
   @@index([provider])
   @@index([status])
   @@index([createdAt])
+}
+
+model PaymentEvent {
+  id              String         @id @default(cuid())
+  paymentRecordId String?
+  provider        String
+  eventType       String
+  eventId         String?
+  status          String?
+  payloadJson     String?
+  createdAt       DateTime       @default(now())
+  paymentRecord   PaymentRecord? @relation(fields: [paymentRecordId], references: [id], onDelete: SetNull)
+
+  @@unique([provider, eventId])
+  @@index([paymentRecordId])
+  @@index([eventType])
+  @@index([createdAt])
+}
+
+model UserEntitlement {
+  id              String         @id @default(cuid())
+  userId          String
+  type            String
+  status          String         @default("active")
+  startsAt        DateTime
+  endsAt          DateTime
+  sourcePaymentId String?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  user            User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sourcePayment   PaymentRecord? @relation(fields: [sourcePaymentId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([status])
+  @@index([sourcePaymentId])
+  @@index([endsAt])
 }

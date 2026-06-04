@@ -8,6 +8,7 @@ type MockPosterProps = {
   fallbackPosterUrl?: string;
   posterCandidates?: string[];
   assetSource?: string;
+  objectPosition?: string;
   tags?: string[];
   showPlay?: boolean;
   className?: string;
@@ -20,6 +21,7 @@ export default function MockPoster({
   fallbackPosterUrl,
   posterCandidates,
   assetSource,
+  objectPosition = 'center center',
   tags = [],
   showPlay = true,
   className = '',
@@ -59,6 +61,7 @@ export default function MockPoster({
           data-src-debug={activeUrl}
           data-source-debug={assetSource}
           onError={handleImageError}
+          style={{ objectPosition }}
           className="absolute inset-0 h-full w-full object-cover"
         />
       )}

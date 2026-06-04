@@ -91,6 +91,42 @@ export type DashboardRecentEvent = {
   createdAt: string;
 };
 
+export type AdminPayment = {
+  id: string;
+  userId?: string;
+  userEmail?: string;
+  provider: string;
+  amount: number;
+  currency: string;
+  status: string;
+  paymentMethod?: string;
+  paidAt?: string;
+  failedAt?: string;
+  canceledAt?: string;
+  providerSessionId?: string;
+  providerPaymentId?: string;
+  providerPaymentStatus?: string;
+  providerCustomerEmail?: string;
+  providerCustomerId?: string;
+  failureCode?: string;
+  failureMessage?: string;
+  checkoutUrl?: string;
+  rawWebhookEventId?: string;
+  rawWebhookType?: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type AdminPaymentEvent = {
+  id: string;
+  provider: string;
+  eventType: string;
+  eventId?: string;
+  status?: string;
+  payloadJson?: string;
+  createdAt: string;
+};
+
 export type DemoAssetItem = {
   id: string;
   title: string;
@@ -185,6 +221,16 @@ async function downloadFile(path: string, fallbackFilename: string) {
   URL.revokeObjectURL(url);
 }
 
+function buildQuery(params: Record<string, string | number | undefined>) {
+  return new URLSearchParams(
+    Object.fromEntries(
+      Object.entries(params)
+        .filter(([, value]) => value !== undefined && value !== '')
+        .map(([key, value]) => [key, String(value)]),
+    ),
+  );
+}
+
 export const api = {
   baseUrl: API_BASE,
   login: (username: string, password: string) =>
@@ -242,39 +288,32 @@ export const api = {
       '/api/admin/analytics/play-funnel',
     ),
   dashboardOverview: (range: DashboardRange) =>
-    request<DashboardOverview>(`/api/admin/dashboard/overview?${new URLSearchParams({ range })}`),
+    request<DashboardOverview>(`/api/admin/dashboard/overview?${buildQuery({ range })}`),
   dashboardTrends: (range: DashboardRange) =>
-    request<{ range: DashboardRange; items: DashboardTrendItem[] }>(
-      `/api/admin/dashboard/trends?${new URLSearchParams({ range })}`,
-    ),
+    request<{ range: DashboardRange; items: DashboardTrendItem[] }>(`/api/admin/dashboard/trends?${buildQuery({ range })}`),
   dashboardFunnel: (range: DashboardRange) =>
-    request<{ range: DashboardRange; steps: DashboardFunnelStep[] }>(
-      `/api/admin/dashboard/funnel?${new URLSearchParams({ range })}`,
-    ),
+    request<{ range: DashboardRange; steps: DashboardFunnelStep[] }>(`/api/admin/dashboard/funnel?${buildQuery({ range })}`),
   dashboardTopDramas: (range: DashboardRange) =>
     request<{ range: DashboardRange; items: DashboardTopDrama[] }>(
-      `/api/admin/dashboard/top-dramas?${new URLSearchParams({ range })}`,
+      `/api/admin/dashboard/top-dramas?${buildQuery({ range })}`,
     ),
   dashboardSearchKeywords: (range: DashboardRange) =>
     request<{ range: DashboardRange; items: DashboardSearchKeyword[] }>(
-      `/api/admin/dashboard/search-keywords?${new URLSearchParams({ range })}`,
+      `/api/admin/dashboard/search-keywords?${buildQuery({ range })}`,
     ),
   dashboardFilterPreferences: (range: DashboardRange) =>
     request<{ range: DashboardRange; items: DashboardFilterPreference[] }>(
-      `/api/admin/dashboard/filter-preferences?${new URLSearchParams({ range })}`,
+      `/api/admin/dashboard/filter-preferences?${buildQuery({ range })}`,
     ),
   dashboardRecentEvents: (range: DashboardRange, limit = 50, offset = 0) =>
     request<{ range: DashboardRange; items: DashboardRecentEvent[]; total: number; limit: number; offset: number }>(
-      `/api/admin/dashboard/recent-events?${new URLSearchParams({
-        range,
-        limit: String(limit),
-        offset: String(offset),
-      })}`,
+      `/api/admin/dashboard/recent-events?${buildQuery({ range, limit, offset })}`,
     ),
   downloadDashboardCsv: (type: DashboardExportType, range: DashboardRange) =>
-    downloadFile(
-      `/api/admin/dashboard/export.csv?${new URLSearchParams({ type, range })}`,
-      `chengying-${type}-${range}.csv`,
-    ),
+    downloadFile(`/api/admin/dashboard/export.csv?${buildQuery({ type, range })}`, `chengying-${type}-${range}.csv`),
   demoAssets: () => request<DemoAssetsStatus>('/api/admin/demo-assets'),
+  payments: (params: { status?: string; provider?: string; email?: string; limit?: number; offset?: number } = {}) =>
+    request<{ items: AdminPayment[]; total: number; limit: number; offset: number }>(`/api/admin/payments?${buildQuery(params)}`),
+  payment: (id: string) => request<AdminPayment>(`/api/admin/payments/${id}`),
+  paymentEvents: (id: string) => request<{ items: AdminPaymentEvent[] }>(`/api/admin/payments/${id}/events`),
 };

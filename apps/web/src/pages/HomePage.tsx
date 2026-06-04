@@ -159,15 +159,23 @@ export default function HomePage() {
   }
 
   return (
-    <PageContainer className="pb-4 pt-6 md:pt-8">
-      {loading ? <div className="surface h-[560px] animate-pulse bg-white/[0.03]" /> : <HeroShowcase dramas={heroDramas} />}
-      {!loading && <PlatformSignalStrip dramas={dramas} />}
-      <RevealSection className="mt-14 md:mt-16" title="热门短剧" subtitle="本周观众正在追的精彩故事">
-        <DramaGrid dramas={hotDramas} moduleName="热门短剧" reveal />
-      </RevealSection>
-      {rails.map((rail) => (
-        <SectionRail key={rail.title} {...rail} dramas={rail.dramas} />
-      ))}
-    </PageContainer>
+    <>
+      <div className="home-hero-shell">
+        {loading ? (
+          <div className="surface mx-auto h-[82vh] max-w-7xl animate-pulse bg-white/[0.03]" />
+        ) : (
+          <HeroShowcase dramas={heroDramas} />
+        )}
+      </div>
+      <PageContainer className="pb-4 pt-8 md:pt-10">
+        {!loading && <PlatformSignalStrip dramas={dramas} />}
+        <RevealSection className="mt-14 md:mt-16" title="热门短剧" subtitle="本周观众正在追的精彩故事">
+          <DramaGrid dramas={hotDramas} moduleName="热门短剧" reveal />
+        </RevealSection>
+        {rails.map((rail) => (
+          <SectionRail key={rail.title} {...rail} dramas={rail.dramas} />
+        ))}
+      </PageContainer>
+    </>
   );
 }

@@ -8,6 +8,7 @@ import DramaFormPage from './pages/DramaFormPage';
 import DramasPage from './pages/DramasPage';
 import EpisodesPage from './pages/EpisodesPage';
 import LoginPage from './pages/LoginPage';
+import PaymentsPage from './pages/PaymentsPage';
 import UploadsPage from './pages/UploadsPage';
 import VisualGeneratorPage from './pages/VisualGeneratorPage';
 
@@ -29,6 +30,7 @@ export default function App() {
         <Route path="/uploads" element={<UploadsPage />} />
         <Route path="/demo-assets" element={<DemoAssetsPage />} />
         <Route path="/visual-generator" element={<VisualGeneratorPage />} />
+        <Route path="/payments" element={<PaymentsPage />} />
         <Route path="/analytics" element={<AnalyticsPage mode="overview" />} />
         <Route path="/analytics/search-keywords" element={<AnalyticsPage mode="search" />} />
         <Route path="/analytics/drama-clicks" element={<AnalyticsPage mode="clicks" />} />

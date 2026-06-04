@@ -19,12 +19,19 @@
     "build:api": "node scripts/run-workspace.mjs @chengying/api build",
     "preview:web": "node scripts/run-workspace.mjs @chengying/web preview",
     "generate:demo-assets": "node scripts/generate-demo-assets.mjs",
+    "import:featured-assets": "node scripts/import-featured-assets.mjs",
     "test:openai-image": "node scripts/test-openai-image.mjs",
     "prepare:pages": "node scripts/prepare-web-pages.mjs",
     "db:generate": "node scripts/run-workspace.mjs @chengying/api db:generate",
     "db:push": "node scripts/run-workspace.mjs @chengying/api db:push",
     "db:seed": "node scripts/run-workspace.mjs @chengying/api db:seed",
-    "db:studio": "node scripts/run-workspace.mjs @chengying/api db:studio"
+    "db:studio": "node scripts/run-workspace.mjs @chengying/api db:studio",
+    "check:auth": "node scripts/check-auth-flow.mjs",
+    "check:payments-config": "node scripts/check-payments-config.mjs",
+    "check:aliyun-config": "node scripts/check-aliyun-config.mjs",
+    "check:prod-readiness": "node scripts/check-prod-readiness.mjs",
+    "loadtest:api": "node scripts/loadtest-auth.mjs --mode=api",
+    "loadtest:auth": "node scripts/loadtest-auth.mjs --mode=auth"
   },
   "devDependencies": {
     "typescript": "~5.6.3",
