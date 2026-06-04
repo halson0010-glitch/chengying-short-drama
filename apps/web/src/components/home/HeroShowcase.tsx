@@ -38,7 +38,7 @@ export default function HeroShowcase({ dramas }: HeroShowcaseProps) {
   const debugAssets = import.meta.env.VITE_DEBUG_ASSETS === 'true';
 
   const preloadedAssets = usePreloadHeroAssets(safeDramas);
-  const { introActive, introFinished } = useHeroIntroOnce(1860);
+  const { introActive, introFinished } = useHeroIntroOnce(1500);
 
   const { currentIndex, selectIndex, pause, resume } = useHeroAutoplay({
     length: safeDramas.length,
@@ -61,6 +61,7 @@ export default function HeroShowcase({ dramas }: HeroShowcaseProps) {
 
   const selectedDrama = safeDramas[currentIndex] ?? safeDramas[0];
   const previousDrama = safeDramas[previousIndexRef.current] ?? selectedDrama;
+  const keepFirstHeroStable = introFinished && transitionSeed === 0 && currentIndex === 0;
 
   if (!selectedDrama) return null;
 
@@ -96,6 +97,7 @@ export default function HeroShowcase({ dramas }: HeroShowcaseProps) {
         previous={previousDrama}
         revealKey={`${selectedDrama.id}-${transitionSeed}`}
         introActive={introActive}
+        suppressRevealAnimation={keepFirstHeroStable}
       />
       {debugAssets && <AssetDebugOverlay drama={selectedDrama} />}
       <div className="relative z-10 mx-auto flex min-h-[620px] w-full max-w-[1440px] flex-col justify-between px-5 pb-7 pt-8 sm:px-8 md:min-h-[720px] md:px-10 md:py-12 lg:min-h-[100svh] lg:px-16 lg:pb-16 lg:pt-28 xl:px-20">

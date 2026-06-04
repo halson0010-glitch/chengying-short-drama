@@ -1,6 +1,5 @@
 import type { CSSProperties } from 'react';
-import { useEffect, useMemo, useState } from 'react';
-import { resolveDramaHeroAsset } from '../../lib/hero';
+import { useEffect, useState } from 'react';
 import type { Drama } from '../../types/drama';
 
 type HeroIntroFragmentsProps = {
@@ -13,10 +12,11 @@ type FragmentStyle = CSSProperties & {
   '--fragment-dx': string;
   '--fragment-dy': string;
   '--fragment-rotate': string;
+  '--fragment-glow': string;
 };
 
-const columns = 6;
-const rows = 4;
+const columns = 4;
+const rows = 3;
 const fragmentCount = columns * rows;
 
 function fragmentOffset(index: number) {
@@ -24,15 +24,13 @@ function fragmentOffset(index: number) {
   const row = Math.floor(index / columns);
   const centerX = (columns - 1) / 2;
   const centerY = (rows - 1) / 2;
-  const x = (column - centerX) * 12 + (index % 2 === 0 ? -10 : 10);
-  const y = (row - centerY) * 14 + (index % 3 === 0 ? 10 : -8);
+  const x = (column - centerX) * 9 + (index % 2 === 0 ? -7 : 7);
+  const y = (row - centerY) * 10 + (index % 3 === 0 ? 6 : -6);
   return { x, y };
 }
 
 export default function HeroIntroFragments({ drama, active }: HeroIntroFragmentsProps) {
   const [mounted, setMounted] = useState(active);
-  const asset = useMemo(() => resolveDramaHeroAsset(drama), [drama]);
-  const imageSrc = asset.src;
 
   useEffect(() => {
     if (active) setMounted(true);
@@ -62,12 +60,12 @@ export default function HeroIntroFragments({ drama, active }: HeroIntroFragments
           top: `${row * height}%`,
           width: `${width + 0.7}%`,
           height: `${height + 0.9}%`,
-          backgroundImage: imageSrc ? `url("${imageSrc}")` : drama.gradient,
-          backgroundPosition: `${(column / (columns - 1)) * 100}% ${(row / (rows - 1)) * 100}%`,
-          '--fragment-delay': `${80 + index * 16}ms`,
+          '--fragment-delay': `${70 + index * 24}ms`,
           '--fragment-dx': `${offset.x}px`,
           '--fragment-dy': `${offset.y}px`,
           '--fragment-rotate': `${(index % 5) - 2}deg`,
+          '--fragment-glow':
+            index % 2 === 0 ? 'rgba(255, 116, 76, 0.22)' : 'rgba(255, 255, 255, 0.13)',
         };
 
         return <span key={`${drama.id}-${index}`} className="hero-intro-fragment" style={style} />;

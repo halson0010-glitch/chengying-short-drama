@@ -8,6 +8,7 @@ type HeroBackgroundStageProps = {
   previous?: Drama;
   revealKey: string;
   introActive: boolean;
+  suppressRevealAnimation?: boolean;
 };
 
 function HeroImageLayer({
@@ -53,6 +54,7 @@ export default function HeroBackgroundStage({
   previous,
   revealKey,
   introActive,
+  suppressRevealAnimation = false,
 }: HeroBackgroundStageProps) {
   const showPrevious = Boolean(previous && previous.id !== current.id && !introActive);
 
@@ -62,10 +64,11 @@ export default function HeroBackgroundStage({
       <HeroImageLayer
         key={revealKey}
         drama={current}
-        className={introActive ? 'hero-image-focus-in' : 'hero-bg-crossfade'}
+        className={introActive ? 'hero-image-focus-in' : suppressRevealAnimation ? 'hero-bg-stable' : 'hero-bg-crossfade'}
       />
       <div className="hero-cinema-mask" />
       <div className="hero-edge-vignette" />
+      <div className="hero-corner-fusion" />
       <div className="hero-warm-flare hero-warm-flare-left" />
       <div className="hero-warm-flare hero-warm-flare-right" />
       <div className="hero-floor-glow" />

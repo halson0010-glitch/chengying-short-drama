@@ -1,5 +1,5 @@
 import type { CSSProperties } from 'react';
-import { getDramaPosterObjectPosition, resolveDramaPosterAsset } from '../../lib/hero';
+import { getDramaPosterFitMode, getDramaPosterObjectPosition, resolveDramaPosterAsset } from '../../lib/hero';
 import type { Drama } from '../../types/drama';
 import MockPoster from '../drama/MockPoster';
 
@@ -55,6 +55,7 @@ export default function HeroPosterRail({
               posterCandidates={posterAsset.candidates.map((candidate) => candidate.src)}
               assetSource={String(posterAsset.source)}
               objectPosition={getDramaPosterObjectPosition(drama)}
+              objectFit={getDramaPosterFitMode(drama)}
               tags={drama.tags}
               showPlay={false}
               className={`rounded-2xl border transition duration-300 ${

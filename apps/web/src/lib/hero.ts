@@ -29,15 +29,19 @@ export type ResolvedDramaAsset = {
 };
 
 const posterObjectPositionOverrides: Record<string, string> = {
-  'ember-vow': '46% center',
+  'ember-vow': 'center center',
 };
 
 const heroObjectPositionOverrides: Record<string, string> = {
   'ember-vow': '55% center',
-  'neon-crown': '54% center',
-  'hidden-chairman': '56% center',
-  'moon-scroll': '54% center',
-  'missing-minute': '55% center',
+  'neon-crown': '50% center',
+  'hidden-chairman': '50% center',
+  'moon-scroll': '50% center',
+  'missing-minute': '50% center',
+};
+
+const posterFitModeOverrides: Record<string, 'cover' | 'contain'> = {
+  'ember-vow': 'contain',
 };
 
 function firstDefined<T>(...values: Array<T | undefined>) {
@@ -137,5 +141,9 @@ export function getDramaPosterObjectPosition(drama: Drama) {
 }
 
 export function getDramaHeroObjectPosition(drama: Drama) {
-  return drama.heroObjectPosition || heroObjectPositionOverrides[drama.id] || '55% center';
+  return drama.heroObjectPosition || heroObjectPositionOverrides[drama.id] || '50% center';
+}
+
+export function getDramaPosterFitMode(drama: Drama) {
+  return posterFitModeOverrides[drama.id] || 'cover';
 }

@@ -9,6 +9,7 @@ type MockPosterProps = {
   posterCandidates?: string[];
   assetSource?: string;
   objectPosition?: string;
+  objectFit?: 'cover' | 'contain';
   tags?: string[];
   showPlay?: boolean;
   className?: string;
@@ -22,6 +23,7 @@ export default function MockPoster({
   posterCandidates,
   assetSource,
   objectPosition = 'center center',
+  objectFit = 'cover',
   tags = [],
   showPlay = true,
   className = '',
@@ -53,6 +55,15 @@ export default function MockPoster({
 
   return (
     <div className={`relative aspect-[9/16] overflow-hidden bg-raised ${className}`} style={{ background: gradient }}>
+      {activeUrl && !posterFailed && objectFit === 'contain' && (
+        <img
+          src={activeUrl}
+          alt=""
+          aria-hidden="true"
+          className="absolute inset-0 h-full w-full scale-110 object-cover opacity-55 blur-xl"
+          style={{ objectPosition }}
+        />
+      )}
       {activeUrl && !posterFailed && (
         <img
           src={activeUrl}
@@ -61,8 +72,8 @@ export default function MockPoster({
           data-src-debug={activeUrl}
           data-source-debug={assetSource}
           onError={handleImageError}
-          style={{ objectPosition }}
-          className="absolute inset-0 h-full w-full object-cover"
+          style={{ objectPosition, objectFit }}
+          className="absolute inset-0 h-full w-full"
         />
       )}
       <div className="pointer-events-none absolute -right-10 top-[14%] h-32 w-32 rounded-full bg-white/14 blur-3xl" />
