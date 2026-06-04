@@ -288,8 +288,10 @@ button {
   }
 
   .hero-queue-panel {
+    --hero-queue-shift-x: 0px;
     border-radius: 24px;
     background: linear-gradient(90deg, transparent, rgba(0, 0, 0, 0.18));
+    overflow: visible;
     padding: 14px 0 0 18px;
   }
 
@@ -577,8 +579,15 @@ button {
   }
 
   .hero-queue-panel {
+    --hero-queue-shift-x: clamp(28px, 3vw, 64px);
     padding: 16px 0 0 22px;
     background: linear-gradient(90deg, transparent, rgba(0, 0, 0, 0.24));
+    overflow: visible;
+    transform: translate3d(var(--hero-queue-shift-x), 0, 0);
+  }
+
+  .hero-queue-panel .hero-poster-rail {
+    overflow: visible;
   }
 }
 
@@ -607,10 +616,12 @@ button {
   }
 
   .hero-queue-panel {
+    --hero-queue-shift-x: 0px;
     margin-left: -0.25rem;
     margin-right: -0.25rem;
     padding-left: 0;
     background: transparent;
+    transform: none;
   }
 
   .reveal-card {

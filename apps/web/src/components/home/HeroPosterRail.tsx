@@ -24,7 +24,7 @@ export default function HeroPosterRail({
 }: HeroPosterRailProps) {
   return (
     <div
-      className="hero-poster-rail rail-scroll flex snap-x gap-3 overflow-x-auto pb-2 lg:justify-end lg:gap-4"
+      className="hero-poster-rail rail-scroll flex snap-x gap-3 overflow-x-auto pb-2 lg:overflow-visible lg:justify-end lg:gap-4"
       onMouseEnter={onPause}
       onMouseLeave={onResume}
       onFocus={onPause}
@@ -56,6 +56,7 @@ export default function HeroPosterRail({
               assetSource={String(posterAsset.source)}
               objectPosition={getDramaPosterObjectPosition(drama)}
               objectFit={getDramaPosterFitMode(drama)}
+              useBlurBackgroundWhenContain={drama.id === 'ember-vow'}
               aspectClassName="aspect-[2/3]"
               tags={drama.tags}
               showPlay={false}

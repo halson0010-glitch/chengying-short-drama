@@ -10,6 +10,7 @@ type MockPosterProps = {
   assetSource?: string;
   objectPosition?: string;
   objectFit?: 'cover' | 'contain';
+  useBlurBackgroundWhenContain?: boolean;
   aspectClassName?: string;
   tags?: string[];
   showPlay?: boolean;
@@ -26,6 +27,7 @@ export default function MockPoster({
   assetSource,
   objectPosition = 'center center',
   objectFit = 'cover',
+  useBlurBackgroundWhenContain = true,
   aspectClassName = 'aspect-[9/16]',
   tags = [],
   showPlay = true,
@@ -59,7 +61,7 @@ export default function MockPoster({
 
   return (
     <div className={`relative ${aspectClassName} overflow-hidden bg-raised ${className}`} style={{ background: gradient }}>
-      {activeUrl && !posterFailed && objectFit === 'contain' && (
+      {activeUrl && !posterFailed && objectFit === 'contain' && useBlurBackgroundWhenContain && (
         <img
           src={activeUrl}
           alt=""

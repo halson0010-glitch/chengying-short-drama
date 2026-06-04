@@ -109,7 +109,7 @@ export default function HeroShowcase({ dramas }: HeroShowcaseProps) {
             introActive={introActive}
           />
         </div>
-        <div className="hero-queue-panel mt-10 w-full max-w-[720px] self-end lg:absolute lg:bottom-20 lg:right-16 lg:max-w-[760px] xl:right-20">
+        <div className="hero-queue-panel mt-10 w-full max-w-[720px] self-end lg:absolute lg:bottom-20 lg:right-16 lg:max-w-[760px] lg:overflow-visible xl:right-20">
           <p className="mb-3 text-xs font-semibold uppercase tracking-[0.32em] text-white/42">Featured Queue</p>
           <HeroPosterRail
             dramas={safeDramas}

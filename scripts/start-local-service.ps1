@@ -90,6 +90,19 @@ function Get-Listener {
   Get-NetTCPConnection -LocalPort $Port -State Listen -ErrorAction SilentlyContinue | Select-Object -First 1
 }
 
+function Get-ListenerProcesses {
+  param([int]$Port)
+
+  Get-NetTCPConnection -LocalPort $Port -State Listen -ErrorAction SilentlyContinue | ForEach-Object {
+    $process = Get-CimInstance Win32_Process -Filter "ProcessId = $($_.OwningProcess)" -ErrorAction SilentlyContinue
+    [PSCustomObject]@{
+      ProcessId = $_.OwningProcess
+      Name = $process.Name
+      CommandLine = $process.CommandLine
+    }
+  }
+}
+
 function Stop-LocalPreviewOnPort {
   param([int]$Port)
 
@@ -106,7 +119,8 @@ function Stop-LocalPreviewOnPort {
 function Wait-ForHttp {
   param(
     [string]$Url,
-    [int]$TimeoutSeconds = 30
+    [int]$TimeoutSeconds = 30,
+    [string]$ExpectedText = ''
   )
 
   $deadline = (Get-Date).AddSeconds($TimeoutSeconds)
@@ -114,7 +128,9 @@ function Wait-ForHttp {
     try {
       $response = Invoke-WebRequest -Uri $Url -UseBasicParsing -TimeoutSec 3
       if ($response.StatusCode -ge 200 -and $response.StatusCode -lt 500) {
-        return $true
+        if (-not $ExpectedText -or $response.Content.Contains($ExpectedText)) {
+          return $true
+        }
       }
     }
     catch {
@@ -125,24 +141,61 @@ function Wait-ForHttp {
   return $false
 }
 
+function Stop-ConflictingLocalServiceOnPort {
+  param(
+    [int]$Port,
+    [string]$Name,
+    [string]$ReadyUrl,
+    [string]$ExpectedText
+  )
+
+  if (Wait-ForHttp -Url $ReadyUrl -TimeoutSeconds 2 -ExpectedText $ExpectedText) {
+    return
+  }
+
+  $listeners = @(Get-ListenerProcesses -Port $Port)
+  foreach ($listener in $listeners) {
+    $commandLine = [string]$listener.CommandLine
+    $isProjectLocalService =
+      $commandLine -like "*$root*" -and (
+        $commandLine -like '*vite*' -or
+        $commandLine -like '*serve-local-preview.ps1*' -or
+        $commandLine -like '*run-workspace.mjs*'
+      )
+
+    if ($isProjectLocalService) {
+      Write-Host "Stopping conflicting local service on port $Port before starting $Name..." -ForegroundColor Yellow
+      Stop-Process -Id $listener.ProcessId -Force -ErrorAction SilentlyContinue
+    }
+  }
+}
+
 function Start-WorkspaceService {
   param(
     [string]$Workspace,
     [string]$Name,
     [int]$Port,
-    [string]$ReadyUrl
+    [string]$ReadyUrl,
+    [string]$ExpectedText = ''
   )
 
   $existing = Get-Listener -Port $Port
   if ($Workspace -eq '@chengying/admin' -and $existing) {
     Stop-LocalPreviewOnPort -Port $Port
+    Stop-ConflictingLocalServiceOnPort -Port $Port -Name $Name -ReadyUrl $ReadyUrl -ExpectedText $ExpectedText
     Start-Sleep -Milliseconds 500
     $existing = Get-Listener -Port $Port
   }
 
   if ($existing) {
-    Write-Host "$Name is already running on port $Port." -ForegroundColor Yellow
-    return
+    if (Wait-ForHttp -Url $ReadyUrl -TimeoutSeconds 3 -ExpectedText $ExpectedText) {
+      Write-Host "$Name is already running on port $Port." -ForegroundColor Yellow
+      return
+    }
+
+    $listeners = @(Get-ListenerProcesses -Port $Port)
+    $details = ($listeners | ForEach-Object { "PID $($_.ProcessId) $($_.Name)" }) -join ', '
+    throw "$Name cannot start because port $Port is occupied by another service ($details). Close it and retry."
   }
 
   Write-Host "Starting $Name..." -ForegroundColor Cyan
@@ -156,7 +209,7 @@ function Start-WorkspaceService {
 
   $command = "title $Name && cd /d `"$root`" && set `"PATH=$nodeDir;%PATH%`" && $devCommand"
   Start-Process -FilePath 'cmd.exe' -ArgumentList @('/k', $command) -WorkingDirectory $root -WindowStyle Minimized | Out-Null
-  if (-not (Wait-ForHttp -Url $ReadyUrl -TimeoutSeconds 45)) {
+  if (-not (Wait-ForHttp -Url $ReadyUrl -TimeoutSeconds 45 -ExpectedText $ExpectedText)) {
     throw "$Name did not become ready at $ReadyUrl."
   }
   Write-Host "$Name is ready: $ReadyUrl" -ForegroundColor Green
@@ -220,47 +273,47 @@ try {
 
   switch ($Service) {
     'api' {
-      Start-WorkspaceService -Workspace '@chengying/api' -Name 'Chengying API' -Port 4000 -ReadyUrl 'http://localhost:4000/health'
+      Start-WorkspaceService -Workspace '@chengying/api' -Name 'Chengying API' -Port 4000 -ReadyUrl 'http://127.0.0.1:4000/health'
       if (-not $NoBrowser) {
-        Start-Process 'http://localhost:4000/health'
+        Start-Process 'http://127.0.0.1:4000/health'
       }
       Write-Host ''
-      Write-Host 'API: http://localhost:4000/' -ForegroundColor Cyan
-      Write-Host 'Health: http://localhost:4000/health' -ForegroundColor Cyan
+      Write-Host 'API: http://127.0.0.1:4000/' -ForegroundColor Cyan
+      Write-Host 'Health: http://127.0.0.1:4000/health' -ForegroundColor Cyan
     }
     'admin' {
-      Start-WorkspaceService -Workspace '@chengying/api' -Name 'Chengying API' -Port 4000 -ReadyUrl 'http://localhost:4000/health'
-      Start-WorkspaceService -Workspace '@chengying/admin' -Name 'Chengying Admin' -Port 5174 -ReadyUrl 'http://localhost:5174/'
+      Start-WorkspaceService -Workspace '@chengying/api' -Name 'Chengying API' -Port 4000 -ReadyUrl 'http://127.0.0.1:4000/health'
+      Start-WorkspaceService -Workspace '@chengying/admin' -Name 'Chengying Admin' -Port 5174 -ReadyUrl 'http://127.0.0.1:5174/' -ExpectedText 'name="chengying-app" content="admin"'
       if (-not $NoBrowser) {
-        Start-Process 'http://localhost:5174/'
+        Start-Process 'http://127.0.0.1:5174/'
       }
       Write-Host ''
-      Write-Host 'Admin: http://localhost:5174/' -ForegroundColor Cyan
+      Write-Host 'Admin: http://127.0.0.1:5174/' -ForegroundColor Cyan
       Write-Host 'Login: admin / admin123' -ForegroundColor Cyan
     }
     'health' {
-      Start-WorkspaceService -Workspace '@chengying/api' -Name 'Chengying API' -Port 4000 -ReadyUrl 'http://localhost:4000/health'
-      $health = Invoke-RestMethod -Uri 'http://localhost:4000/health'
+      Start-WorkspaceService -Workspace '@chengying/api' -Name 'Chengying API' -Port 4000 -ReadyUrl 'http://127.0.0.1:4000/health'
+      $health = Invoke-RestMethod -Uri 'http://127.0.0.1:4000/health'
       Write-Host ''
       Write-Host "API health: $($health | ConvertTo-Json -Compress)" -ForegroundColor Green
       if (-not $NoBrowser) {
-        Start-Process 'http://localhost:4000/health'
+        Start-Process 'http://127.0.0.1:4000/health'
       }
     }
     'all' {
-      Start-WorkspaceService -Workspace '@chengying/api' -Name 'Chengying API' -Port 4000 -ReadyUrl 'http://localhost:4000/health'
-      Start-WorkspaceService -Workspace '@chengying/web' -Name 'Chengying H5' -Port 5173 -ReadyUrl 'http://localhost:5173/'
-      Start-WorkspaceService -Workspace '@chengying/admin' -Name 'Chengying Admin' -Port 5174 -ReadyUrl 'http://localhost:5174/'
+      Start-WorkspaceService -Workspace '@chengying/api' -Name 'Chengying API' -Port 4000 -ReadyUrl 'http://127.0.0.1:4000/health'
+      Start-WorkspaceService -Workspace '@chengying/web' -Name 'Chengying H5' -Port 5173 -ReadyUrl 'http://127.0.0.1:5173/'
+      Start-WorkspaceService -Workspace '@chengying/admin' -Name 'Chengying Admin' -Port 5174 -ReadyUrl 'http://127.0.0.1:5174/' -ExpectedText 'name="chengying-app" content="admin"'
       if (-not $NoBrowser) {
-        Start-Process 'http://localhost:5173/'
-        Start-Process 'http://localhost:5174/'
-        Start-Process 'http://localhost:4000/health'
+        Start-Process 'http://127.0.0.1:5173/'
+        Start-Process 'http://127.0.0.1:5174/'
+        Start-Process 'http://127.0.0.1:4000/health'
       }
       Write-Host ''
-      Write-Host 'H5: http://localhost:5173/' -ForegroundColor Cyan
-      Write-Host 'Admin: http://localhost:5174/' -ForegroundColor Cyan
-      Write-Host 'API: http://localhost:4000/' -ForegroundColor Cyan
-      Write-Host 'Health: http://localhost:4000/health' -ForegroundColor Cyan
+      Write-Host 'H5: http://127.0.0.1:5173/' -ForegroundColor Cyan
+      Write-Host 'Admin: http://127.0.0.1:5174/' -ForegroundColor Cyan
+      Write-Host 'API: http://127.0.0.1:4000/' -ForegroundColor Cyan
+      Write-Host 'Health: http://127.0.0.1:4000/health' -ForegroundColor Cyan
       Write-Host 'Admin login: admin / admin123' -ForegroundColor Cyan
     }
   }
