@@ -128,6 +128,10 @@ button {
     background-size: cover;
   }
 
+  .hero-mobile-poster-layer {
+    display: none;
+  }
+
   .hero-bg-previous {
     z-index: 0;
     opacity: 0.72;
@@ -605,6 +609,17 @@ button {
   .hero-bg-image,
   .hero-bg-gradient {
     object-position: 54% center;
+    transform: translate3d(var(--hero-image-shift-x), 0, 0) scale(var(--hero-image-scale));
+  }
+
+  .hero-bg-image:not(.hero-mobile-poster-layer),
+  .hero-bg-gradient:not(.hero-mobile-poster-layer) {
+    display: none;
+  }
+
+  .hero-mobile-poster-layer {
+    display: block;
+    object-fit: cover;
     transform: translate3d(var(--hero-image-shift-x), 0, 0) scale(var(--hero-image-scale));
   }
 
