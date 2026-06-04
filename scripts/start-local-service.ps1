@@ -273,47 +273,47 @@ try {
 
   switch ($Service) {
     'api' {
-      Start-WorkspaceService -Workspace '@chengying/api' -Name 'Chengying API' -Port 4000 -ReadyUrl 'http://127.0.0.1:4000/health'
+      Start-WorkspaceService -Workspace '@chengying/api' -Name 'Chengying API' -Port 4000 -ReadyUrl 'http://localhost:4000/health'
       if (-not $NoBrowser) {
-        Start-Process 'http://127.0.0.1:4000/health'
+        Start-Process 'http://localhost:4000/health'
       }
       Write-Host ''
-      Write-Host 'API: http://127.0.0.1:4000/' -ForegroundColor Cyan
-      Write-Host 'Health: http://127.0.0.1:4000/health' -ForegroundColor Cyan
+      Write-Host 'API: http://localhost:4000/' -ForegroundColor Cyan
+      Write-Host 'Health: http://localhost:4000/health' -ForegroundColor Cyan
     }
     'admin' {
-      Start-WorkspaceService -Workspace '@chengying/api' -Name 'Chengying API' -Port 4000 -ReadyUrl 'http://127.0.0.1:4000/health'
-      Start-WorkspaceService -Workspace '@chengying/admin' -Name 'Chengying Admin' -Port 5174 -ReadyUrl 'http://127.0.0.1:5174/' -ExpectedText 'name="chengying-app" content="admin"'
+      Start-WorkspaceService -Workspace '@chengying/api' -Name 'Chengying API' -Port 4000 -ReadyUrl 'http://localhost:4000/health'
+      Start-WorkspaceService -Workspace '@chengying/admin' -Name 'Chengying Admin' -Port 5174 -ReadyUrl 'http://localhost:5174/' -ExpectedText 'name="chengying-app" content="admin"'
       if (-not $NoBrowser) {
-        Start-Process 'http://127.0.0.1:5174/'
+        Start-Process 'http://localhost:5174/'
       }
       Write-Host ''
-      Write-Host 'Admin: http://127.0.0.1:5174/' -ForegroundColor Cyan
+      Write-Host 'Admin: http://localhost:5174/' -ForegroundColor Cyan
       Write-Host 'Login: admin / admin123' -ForegroundColor Cyan
     }
     'health' {
-      Start-WorkspaceService -Workspace '@chengying/api' -Name 'Chengying API' -Port 4000 -ReadyUrl 'http://127.0.0.1:4000/health'
-      $health = Invoke-RestMethod -Uri 'http://127.0.0.1:4000/health'
+      Start-WorkspaceService -Workspace '@chengying/api' -Name 'Chengying API' -Port 4000 -ReadyUrl 'http://localhost:4000/health'
+      $health = Invoke-RestMethod -Uri 'http://localhost:4000/health'
       Write-Host ''
       Write-Host "API health: $($health | ConvertTo-Json -Compress)" -ForegroundColor Green
       if (-not $NoBrowser) {
-        Start-Process 'http://127.0.0.1:4000/health'
+        Start-Process 'http://localhost:4000/health'
       }
     }
     'all' {
-      Start-WorkspaceService -Workspace '@chengying/api' -Name 'Chengying API' -Port 4000 -ReadyUrl 'http://127.0.0.1:4000/health'
-      Start-WorkspaceService -Workspace '@chengying/web' -Name 'Chengying H5' -Port 5173 -ReadyUrl 'http://127.0.0.1:5173/'
-      Start-WorkspaceService -Workspace '@chengying/admin' -Name 'Chengying Admin' -Port 5174 -ReadyUrl 'http://127.0.0.1:5174/' -ExpectedText 'name="chengying-app" content="admin"'
+      Start-WorkspaceService -Workspace '@chengying/api' -Name 'Chengying API' -Port 4000 -ReadyUrl 'http://localhost:4000/health'
+      Start-WorkspaceService -Workspace '@chengying/web' -Name 'Chengying H5' -Port 5173 -ReadyUrl 'http://localhost:5173/'
+      Start-WorkspaceService -Workspace '@chengying/admin' -Name 'Chengying Admin' -Port 5174 -ReadyUrl 'http://localhost:5174/' -ExpectedText 'name="chengying-app" content="admin"'
       if (-not $NoBrowser) {
-        Start-Process 'http://127.0.0.1:5173/'
-        Start-Process 'http://127.0.0.1:5174/'
-        Start-Process 'http://127.0.0.1:4000/health'
+        Start-Process 'http://localhost:5173/'
+        Start-Process 'http://localhost:5174/'
+        Start-Process 'http://localhost:4000/health'
       }
       Write-Host ''
-      Write-Host 'H5: http://127.0.0.1:5173/' -ForegroundColor Cyan
-      Write-Host 'Admin: http://127.0.0.1:5174/' -ForegroundColor Cyan
-      Write-Host 'API: http://127.0.0.1:4000/' -ForegroundColor Cyan
-      Write-Host 'Health: http://127.0.0.1:4000/health' -ForegroundColor Cyan
+      Write-Host 'H5: http://localhost:5173/' -ForegroundColor Cyan
+      Write-Host 'Admin: http://localhost:5174/' -ForegroundColor Cyan
+      Write-Host 'API: http://localhost:4000/' -ForegroundColor Cyan
+      Write-Host 'Health: http://localhost:4000/health' -ForegroundColor Cyan
       Write-Host 'Admin login: admin / admin123' -ForegroundColor Cyan
     }
   }

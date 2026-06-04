@@ -6,7 +6,14 @@ dotenv.config();
 
 const apiRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const isProduction = process.env.NODE_ENV === 'production';
-const corsOrigins = (process.env.CORS_ORIGINS || (isProduction ? '' : 'http://localhost:5173,http://localhost:5174'))
+const defaultDevCorsOrigins = [
+  'http://localhost:5173',
+  'http://localhost:5174',
+  'http://127.0.0.1:5173',
+  'http://127.0.0.1:5174',
+].join(',');
+
+const corsOrigins = (process.env.CORS_ORIGINS || (isProduction ? '' : defaultDevCorsOrigins))
   .split(',')
   .map((origin) => origin.trim())
   .filter(Boolean);
