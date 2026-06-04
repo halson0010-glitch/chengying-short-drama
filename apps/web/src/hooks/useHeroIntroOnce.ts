@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 
 const HERO_INTRO_STORAGE_KEY = 'chengying_hero_intro_played';
+let memoryIntroPlayed = false;
 
 function shouldReduceMotion() {
   if (typeof window === 'undefined' || !window.matchMedia) return false;
@@ -13,11 +14,12 @@ function shouldPlayIntro() {
   try {
     return sessionStorage.getItem(HERO_INTRO_STORAGE_KEY) !== '1';
   } catch {
-    return false;
+    return !memoryIntroPlayed;
   }
 }
 
 function markIntroPlayed() {
+  memoryIntroPlayed = true;
   try {
     sessionStorage.setItem(HERO_INTRO_STORAGE_KEY, '1');
   } catch {

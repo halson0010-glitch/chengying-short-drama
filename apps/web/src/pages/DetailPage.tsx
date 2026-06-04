@@ -7,7 +7,7 @@ import DramaGrid from '../components/drama/DramaGrid';
 import EpisodeGrid from '../components/drama/EpisodeGrid';
 import MockPoster from '../components/drama/MockPoster';
 import TagChip from '../components/drama/TagChip';
-import { getDramaPosterFallbackImage, getDramaPosterFitMode, getDramaPosterImage, getDramaPosterObjectPosition } from '../lib/hero';
+import { getDramaPosterFallbackImage, getDramaPosterImage, getDramaPosterObjectPosition } from '../lib/hero';
 import { track } from '../lib/analytics';
 import { getDramaById, getDramaEpisodes, getDramaStatus, getRelatedDramas } from '../services/dramaApi';
 import type { Drama } from '../types/drama';
@@ -99,7 +99,6 @@ export default function DetailPage() {
             posterUrl={getDramaPosterImage(drama)}
             fallbackPosterUrl={getDramaPosterFallbackImage(drama)}
             objectPosition={getDramaPosterObjectPosition(drama)}
-            objectFit={getDramaPosterFitMode(drama)}
             tags={drama.tags}
             className="w-full max-w-[230px] shrink-0 rounded-2xl border border-white/10 sm:w-[220px] md:w-[255px]"
           />

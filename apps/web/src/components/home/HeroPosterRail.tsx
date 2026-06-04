@@ -40,7 +40,7 @@ export default function HeroPosterRail({
             onClick={() => onSelect(index)}
             aria-label={`切换推荐至 ${drama.title}`}
             aria-pressed={selected}
-            className={`hero-thumb group w-[104px] shrink-0 snap-start text-left transition duration-300 sm:w-[116px] lg:w-[132px] xl:w-[142px] ${
+            className={`hero-thumb group w-[106px] shrink-0 snap-start text-left transition duration-300 sm:w-[118px] lg:w-[136px] xl:w-[146px] ${
               selected ? 'is-active opacity-100' : 'opacity-60 hover:opacity-100'
             }`}
             style={{
@@ -56,8 +56,10 @@ export default function HeroPosterRail({
               assetSource={String(posterAsset.source)}
               objectPosition={getDramaPosterObjectPosition(drama)}
               objectFit={getDramaPosterFitMode(drama)}
+              aspectClassName="aspect-[2/3]"
               tags={drama.tags}
               showPlay={false}
+              showTitle={false}
               className={`rounded-2xl border transition duration-300 ${
                 selected ? 'border-accent shadow-glow' : 'border-white/10 group-hover:border-white/25'
               }`}

@@ -38,7 +38,7 @@ export default function HeroShowcase({ dramas }: HeroShowcaseProps) {
   const debugAssets = import.meta.env.VITE_DEBUG_ASSETS === 'true';
 
   const preloadedAssets = usePreloadHeroAssets(safeDramas);
-  const { introActive, introFinished } = useHeroIntroOnce(1500);
+  const { introActive, introFinished } = useHeroIntroOnce(1850);
 
   const { currentIndex, selectIndex, pause, resume } = useHeroAutoplay({
     length: safeDramas.length,

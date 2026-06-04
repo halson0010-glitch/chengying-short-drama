@@ -66,6 +66,7 @@ export default function HeroBackgroundStage({
         drama={current}
         className={introActive ? 'hero-image-focus-in' : suppressRevealAnimation ? 'hero-bg-stable' : 'hero-bg-crossfade'}
       />
+      <HeroImageLayer key={`${revealKey}-blurred-edges`} drama={current} className="hero-blurred-edge-layer" />
       <div className="hero-cinema-mask" />
       <div className="hero-edge-vignette" />
       <div className="hero-corner-fusion" />

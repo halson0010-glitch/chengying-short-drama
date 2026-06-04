@@ -1,7 +1,7 @@
 import type { CSSProperties } from 'react';
 import { Link } from 'react-router-dom';
 import { track } from '../../lib/analytics';
-import { getDramaPosterFallbackImage, getDramaPosterFitMode, getDramaPosterImage, getDramaPosterObjectPosition } from '../../lib/hero';
+import { getDramaPosterFallbackImage, getDramaPosterImage, getDramaPosterObjectPosition } from '../../lib/hero';
 import type { Drama } from '../../types/drama';
 import MockPoster from './MockPoster';
 import TagChip from './TagChip';
@@ -63,7 +63,6 @@ export default function DramaCard({
           posterUrl={getDramaPosterImage(drama)}
           fallbackPosterUrl={getDramaPosterFallbackImage(drama)}
           objectPosition={getDramaPosterObjectPosition(drama)}
-          objectFit={getDramaPosterFitMode(drama)}
           tags={drama.tags}
           className="transition duration-300 group-hover:scale-[1.04]"
         />

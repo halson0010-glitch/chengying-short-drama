@@ -29,15 +29,15 @@ export type ResolvedDramaAsset = {
 };
 
 const posterObjectPositionOverrides: Record<string, string> = {
-  'ember-vow': 'center center',
+  'ember-vow': '48% center',
 };
 
 const heroObjectPositionOverrides: Record<string, string> = {
-  'ember-vow': '55% center',
-  'neon-crown': '50% center',
-  'hidden-chairman': '50% center',
-  'moon-scroll': '50% center',
-  'missing-minute': '50% center',
+  'ember-vow': '48% center',
+  'neon-crown': '48% center',
+  'hidden-chairman': '47% center',
+  'moon-scroll': '48% center',
+  'missing-minute': '48% center',
 };
 
 const posterFitModeOverrides: Record<string, 'cover' | 'contain'> = {
