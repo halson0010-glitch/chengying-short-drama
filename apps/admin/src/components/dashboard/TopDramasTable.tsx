@@ -10,11 +10,13 @@ export default function TopDramasTable({ items }: TopDramasTableProps) {
     <section className="surface overflow-hidden">
       <div className="border-b border-white/[0.06] p-5">
         <h2 className="text-xl font-black">热门短剧排行</h2>
-        <p className="mt-1 text-sm text-white/42">综合卡片点击、播放点击、播放开始和完播数据，默认 Top 10。</p>
+        <p className="mt-1 text-sm text-white/42">
+          仅统计真实短剧的卡片点击、播放点击、播放开始和完播数据；自动轮播和测试样本不纳入排行。
+        </p>
       </div>
       {!items.length ? (
         <div className="p-5">
-          <EmptyState title="暂无短剧排行" description="有短剧点击或播放事件后，这里会自动生成排行榜。" />
+          <EmptyState title="暂无短剧排行" description="有真实短剧点击或播放事件后，这里会自动生成排行榜。" />
         </div>
       ) : (
         <div className="overflow-x-auto">

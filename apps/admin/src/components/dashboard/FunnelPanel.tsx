@@ -11,7 +11,7 @@ export default function FunnelPanel({ steps }: FunnelPanelProps) {
   return (
     <section className="surface p-5">
       <h2 className="text-xl font-black">播放转化漏斗</h2>
-      <p className="mt-1 text-sm text-white/42">从访问到完播的关键路径，播放 50% 依赖 play_progress 事件。</p>
+      <p className="mt-1 text-sm text-white/42">从访问到完播的关键路径，默认不统计 play_progress 等调试事件。</p>
       {!hasData ? (
         <div className="mt-5">
           <EmptyState title="暂无漏斗数据" description="前台产生播放、点击或完播事件后，这里会自动出现转化链路。" />
@@ -24,7 +24,6 @@ export default function FunnelPanel({ steps }: FunnelPanelProps) {
                 <span className="font-bold">{step.label}</span>
                 <span className="text-white/50">
                   {step.value.toLocaleString()} · 上一环节 {step.stepRate.toFixed(1)}% · 总转化 {step.totalRate.toFixed(1)}%
-                  {step.key === 'play_progress_50' && step.value === 0 ? ' · 待接入' : ''}
                 </span>
               </div>
               <div className="h-3 overflow-hidden rounded-full bg-white/[0.06]">

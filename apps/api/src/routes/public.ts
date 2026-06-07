@@ -23,6 +23,34 @@ publicRouter.get('/dramas/:id', async (req, res) => {
   return res.json(serializeDrama(drama));
 });
 
+publicRouter.get('/search/hot', async (req, res) => {
+  const days = Math.min(Math.max(Number(req.query.days ?? 30), 1), 30);
+  const since = new Date(Date.now() - days * 86_400_000);
+  const events = await prisma.analyticsEvent.findMany({
+    where: { event: 'search_submit', createdAt: { gte: since } },
+    orderBy: { createdAt: 'desc' },
+    take: 5000,
+  });
+  const counts = new Map<string, number>();
+  events.forEach((event) => {
+    let payload: Record<string, unknown> = {};
+    try {
+      payload = event.payloadJson ? JSON.parse(event.payloadJson) as Record<string, unknown> : {};
+    } catch {
+      payload = {};
+    }
+    const keyword = sanitizeSensitiveText(String(payload.keyword ?? payload.search_term ?? '').trim().replace(/\s+/g, ' ')).slice(0, 60);
+    if (!keyword || keyword.includes('[redacted]')) return;
+    counts.set(keyword, (counts.get(keyword) ?? 0) + 1);
+  });
+  return res.json({
+    items: [...counts.entries()]
+      .map(([keyword, count]) => ({ keyword, count }))
+      .sort((first, second) => second.count - first.count)
+      .slice(0, 12),
+  });
+});
+
 publicRouter.get('/search', async (req, res) => {
   const keyword = sanitizeSensitiveText(String(req.query.q ?? '')).slice(0, 60);
   if (!keyword) return res.json([]);

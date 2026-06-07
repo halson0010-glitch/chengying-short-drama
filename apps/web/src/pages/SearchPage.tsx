@@ -28,12 +28,16 @@ export default function SearchPage() {
       return undefined;
     }
     setRecentSearches(saveRecentSearch(keyword));
-    track('search_submit', { keyword, source: 'search_page_url' });
     setLoading(true);
     void searchDramasRemote(keyword)
       .then((matches) => {
         if (!active) return;
         setResults(matches);
+        track('search_result_view', {
+          keyword,
+          resultCount: matches.length,
+          source: 'search_page_url',
+        });
         if (!matches.length) track('search_no_result', { keyword });
       })
       .catch(() => {

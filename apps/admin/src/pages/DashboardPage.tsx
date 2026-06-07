@@ -45,6 +45,14 @@ function buildMetricCards(metrics?: DashboardOverview['metrics']) {
     { label: '搜索次数', mark: 'SEARCH', metric: metrics?.searchSubmits ?? emptyMetric },
     { label: '无结果搜索次数', mark: 'EMPTY', metric: metrics?.searchNoResults ?? emptyMetric },
     { label: '下载 App 弹层打开次数', mark: 'APP', metric: metrics?.downloadPopoverOpens ?? emptyMetric },
+    { label: '继续观看点击', mark: 'CONT', metric: metrics?.continueWatchClicks ?? emptyMetric },
+    { label: '收藏新增', mark: 'FAV', metric: metrics?.favoriteAdds ?? emptyMetric },
+    { label: '锁集点击', mark: 'LOCK', metric: metrics?.lockedEpisodeClicks ?? emptyMetric },
+    { label: '付费弹窗曝光', mark: 'PAY', metric: metrics?.paywallViews ?? emptyMetric },
+    { label: '付费 CTA 点击', mark: 'CTA', metric: metrics?.paywallCtaClicks ?? emptyMetric },
+    { label: '分享点击', mark: 'SHARE', metric: metrics?.shareClicks ?? emptyMetric },
+    { label: '排行榜曝光', mark: 'RANK', metric: metrics?.rankingViews ?? emptyMetric },
+    { label: '追剧页访问', mark: 'LIB', metric: metrics?.libraryViews ?? emptyMetric },
   ];
 }
 

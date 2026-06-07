@@ -13,15 +13,20 @@ export type AnalyticsEventName =
   | 'play_pause'
   | 'play_complete'
   | 'play_progress'
+  | 'play_rate_change'
   | 'episode_click'
+  | 'autoplay_next_episode'
   | 'filter_change'
   | 'search_focus'
   | 'search_input'
   | 'search_submit'
+  | 'search_result_view'
   | 'search_suggestion_click'
   | 'search_result_click'
   | 'search_no_result'
+  | 'home_hero_dwell'
   | 'favorite_toggle'
+  | 'download_button_click'
   | 'download_popover_open'
   | 'payment_checkout_start'
   | 'payment_checkout_created'
@@ -29,7 +34,45 @@ export type AnalyticsEventName =
   | 'payment_success_page_view'
   | 'payment_cancel_page_view'
   | 'payment_failed'
-  | 'payment_not_configured';
+  | 'payment_not_configured'
+  | 'bottom_nav_click'
+  | 'home_module_view'
+  | 'home_module_more_click'
+  | 'recommendation_refresh_click'
+  | 'continue_watch_module_view'
+  | 'ranking_view'
+  | 'ranking_tab_switch'
+  | 'ranking_item_click'
+  | 'library_page_view'
+  | 'library_tab_switch'
+  | 'continue_watch_click'
+  | 'favorite_item_click'
+  | 'history_item_click'
+  | 'history_clear_click'
+  | 'detail_continue_watch_click'
+  | 'episode_group_switch'
+  | 'episode_locked_click'
+  | 'episode_panel_open'
+  | 'episode_panel_close'
+  | 'watch_progress_checkpoint'
+  | 'watch_duration_update'
+  | 'next_episode_click'
+  | 'previous_episode_click'
+  | 'locked_episode_view'
+  | 'trial_end_popup_view'
+  | 'paywall_popup_view'
+  | 'paywall_cta_click'
+  | 'login_required_popup_view'
+  | 'search_hot_keyword_click'
+  | 'search_recent_keyword_click'
+  | 'search_suggest_view'
+  | 'search_suggest_click'
+  | 'account_module_click'
+  | 'recharge_entry_click'
+  | 'payment_history_view'
+  | 'entitlement_view'
+  | 'share_click'
+  | 'share_success';
 
 export type AnalyticsEvent = {
   event: AnalyticsEventName;
@@ -51,7 +94,7 @@ const SESSION_ID_KEY = 'chengying_session_id';
 const ANALYTICS_QUEUE_KEY = 'chengying_analytics_queue';
 const MAX_QUEUE_LENGTH = 100;
 const analyticsEndpoint = import.meta.env.VITE_ANALYTICS_ENDPOINT?.trim();
-const analyticsEnabled = import.meta.env.VITE_ANALYTICS_ENABLED !== 'false';
+const analyticsEnabled = import.meta.env.VITE_ANALYTICS_ENABLED !== 'false' && import.meta.env.VITE_ENABLE_ANALYTICS !== 'false';
 let latestFingerprint = '';
 let latestTimestamp = 0;
 
@@ -77,6 +120,10 @@ function getAnonymousId() {
   } catch {
     return createId('anon');
   }
+}
+
+export function getAnalyticsAnonymousId() {
+  return getAnonymousId();
 }
 
 function getSessionId() {

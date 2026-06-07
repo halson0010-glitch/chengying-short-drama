@@ -1,4 +1,5 @@
 import path from 'node:path';
+import os from 'node:os';
 import { fileURLToPath } from 'node:url';
 import dotenv from 'dotenv';
 
@@ -6,6 +7,7 @@ dotenv.config();
 
 const apiRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const isProduction = process.env.NODE_ENV === 'production';
+const isVercel = process.env.VERCEL === '1';
 const defaultDevCorsOrigins = [
   'http://localhost:5173',
   'http://localhost:5174',
@@ -51,9 +53,12 @@ export const config = {
     paymentWindowMs: Number(process.env.RATE_LIMIT_PAYMENT_WINDOW_MS ?? 60_000),
     paymentMax: Number(process.env.RATE_LIMIT_PAYMENT_MAX ?? 30),
   },
-  publicBaseUrl: process.env.PUBLIC_BASE_URL || `http://localhost:${process.env.PORT || 4000}`,
+  publicApiBaseUrl: process.env.PUBLIC_API_BASE_URL || process.env.PUBLIC_BASE_URL || `http://localhost:${process.env.PORT || 4000}`,
+  publicWebBaseUrl: process.env.PUBLIC_WEB_BASE_URL || process.env.PUBLIC_BASE_URL || `http://localhost:${process.env.PORT || 4000}`,
+  publicAdminBaseUrl: process.env.PUBLIC_ADMIN_BASE_URL || '',
+  publicBaseUrl: process.env.PUBLIC_WEB_BASE_URL || process.env.PUBLIC_BASE_URL || `http://localhost:${process.env.PORT || 4000}`,
   corsOrigins,
-  uploadsDir: path.resolve(apiRoot, 'uploads'),
+  uploadsDir: isVercel ? path.join(os.tmpdir(), 'chengying-uploads') : path.resolve(apiRoot, 'uploads'),
   storageProvider: process.env.STORAGE_PROVIDER || 'local',
   openai: {
     apiKey: process.env.OPENAI_API_KEY || '',
@@ -63,12 +68,24 @@ export const config = {
     secretKey: process.env.STRIPE_SECRET_KEY || '',
     publishableKey: process.env.STRIPE_PUBLISHABLE_KEY || '',
     webhookSecret: process.env.STRIPE_WEBHOOK_SECRET || '',
+    successUrl: process.env.STRIPE_SUCCESS_URL || '',
+    cancelUrl: process.env.STRIPE_CANCEL_URL || '',
+  },
+  paypal: {
+    clientId: process.env.PAYPAL_CLIENT_ID || '',
+    clientSecret: process.env.PAYPAL_CLIENT_SECRET || '',
+    webhookId: process.env.PAYPAL_WEBHOOK_ID || '',
+    env: process.env.PAYPAL_ENV || 'sandbox',
+    successUrl: process.env.PAYPAL_SUCCESS_URL || '',
+    cancelUrl: process.env.PAYPAL_CANCEL_URL || '',
   },
   aliyun: {
     ossRegion: process.env.ALIYUN_OSS_REGION || '',
     ossBucket: process.env.ALIYUN_OSS_BUCKET || '',
     accessKeyId: process.env.ALIYUN_ACCESS_KEY_ID || '',
     accessKeySecret: process.env.ALIYUN_ACCESS_KEY_SECRET || '',
+    stsRoleArn: process.env.ALIYUN_STS_ROLE_ARN || '',
+    ossPublicBaseUrl: process.env.ALIYUN_OSS_PUBLIC_BASE_URL || '',
     smsSignName: process.env.ALIYUN_SMS_SIGN_NAME || '',
     smsTemplateCode: process.env.ALIYUN_SMS_TEMPLATE_CODE || '',
   },

@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { track } from '../../lib/analytics';
 import { resolveDramaHeroAsset, resolveDramaPosterAsset } from '../../lib/hero';
 import { useHeroAutoplay } from '../../hooks/useHeroAutoplay';
@@ -34,6 +34,10 @@ function AssetDebugOverlay({ drama }: { drama: Drama }) {
 export default function HeroShowcase({ dramas }: HeroShowcaseProps) {
   const [transitionSeed, setTransitionSeed] = useState(0);
   const previousIndexRef = useRef(0);
+  const dwellStartedAtRef = useRef(Date.now());
+  const dwellSentRef = useRef(false);
+  const activeDramaRef = useRef<Drama | undefined>();
+  const maxVisiblePositionRef = useRef(1);
   const safeDramas = useMemo(() => dramas.slice(0, 5), [dramas]);
   const debugAssets = import.meta.env.VITE_DEBUG_ASSETS === 'true';
 
@@ -44,24 +48,54 @@ export default function HeroShowcase({ dramas }: HeroShowcaseProps) {
     length: safeDramas.length,
     intervalMs: 5400,
     enabled: introFinished && preloadedAssets.ready,
-    onAutoSwitch: (nextIndex, previousIndex) => {
+    onAutoSwitch: (_nextIndex, previousIndex) => {
       previousIndexRef.current = previousIndex;
       setTransitionSeed((value) => value + 1);
-      const nextDrama = safeDramas[nextIndex];
-      if (nextDrama) {
-        track('hero_auto_switch', {
-          dramaId: nextDrama.id,
-          dramaTitle: nextDrama.title,
-          position: nextIndex + 1,
-          previousPosition: previousIndex + 1,
-        });
-      }
     },
   });
 
   const selectedDrama = safeDramas[currentIndex] ?? safeDramas[0];
   const previousDrama = safeDramas[previousIndexRef.current] ?? selectedDrama;
   const keepFirstHeroStable = introFinished && transitionSeed === 0 && currentIndex === 0;
+
+  useEffect(() => {
+    activeDramaRef.current = selectedDrama;
+    maxVisiblePositionRef.current = Math.max(maxVisiblePositionRef.current, currentIndex + 1);
+  }, [currentIndex, selectedDrama]);
+
+  useEffect(() => {
+    const sendDwellEvent = (reason: string) => {
+      if (dwellSentRef.current) return;
+      const activeDrama = activeDramaRef.current;
+      if (!activeDrama) return;
+      const durationMs = Date.now() - dwellStartedAtRef.current;
+      if (durationMs < 1000) return;
+      dwellSentRef.current = true;
+      track('home_hero_dwell', {
+        durationMs,
+        activeDramaId: activeDrama.id,
+        activeDramaTitle: activeDrama.title,
+        maxVisiblePosition: maxVisiblePositionRef.current,
+        source: 'home',
+        reason,
+      });
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') sendDwellEvent('visibility_hidden');
+    };
+
+    const handlePageHide = () => sendDwellEvent('pagehide');
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('pagehide', handlePageHide);
+
+    return () => {
+      sendDwellEvent('unmount');
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('pagehide', handlePageHide);
+    };
+  }, []);
 
   if (!selectedDrama) return null;
 

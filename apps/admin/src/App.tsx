@@ -35,6 +35,9 @@ export default function App() {
         <Route path="/analytics/search-keywords" element={<AnalyticsPage mode="search" />} />
         <Route path="/analytics/drama-clicks" element={<AnalyticsPage mode="clicks" />} />
         <Route path="/analytics/play-funnel" element={<AnalyticsPage mode="funnel" />} />
+        <Route path="/analytics/retention" element={<AnalyticsPage mode="retention" />} />
+        <Route path="/analytics/paywall" element={<AnalyticsPage mode="paywall" />} />
+        <Route path="/analytics/ranking" element={<AnalyticsPage mode="ranking" />} />
       </Route>
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>

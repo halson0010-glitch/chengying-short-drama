@@ -2,6 +2,7 @@ node_modules
 .npm-cache
 dist
 .vite
+.vercel
 apps/web/dist
 apps/admin/dist
 apps/api/dist

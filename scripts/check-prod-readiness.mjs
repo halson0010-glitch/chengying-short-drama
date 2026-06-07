@@ -32,35 +32,69 @@ function mergeDefinedEnv(...sources) {
   return output;
 }
 
+function readPackageScripts() {
+  const packageJson = JSON.parse(readFileSync(path.join(rootDir, 'package.json'), 'utf8'));
+  return packageJson.scripts || {};
+}
+
 const env = mergeDefinedEnv(
   readEnvFile('.env'),
   readEnvFile('apps/api/.env'),
   readEnvFile('apps/web/.env'),
+  readEnvFile('apps/admin/.env'),
   process.env,
 );
 
+const scripts = readPackageScripts();
 const unsafeJwt = new Set(['', 'dev-only-change-me', 'change-me-in-production']);
-const checks = [
-  ['DATABASE_URL', env.DATABASE_URL ? 'configured' : 'missing'],
-  ['JWT_SECRET', env.JWT_SECRET && !unsafeJwt.has(env.JWT_SECRET) ? 'configured' : 'unsafe'],
-  ['CORS_ORIGINS', env.CORS_ORIGINS ? 'configured' : 'missing'],
-  ['VITE_API_BASE_URL', env.VITE_API_BASE_URL ? 'configured' : 'missing'],
-  ['STRIPE_SECRET_KEY', env.STRIPE_SECRET_KEY ? 'configured' : 'missing'],
-  ['STRIPE_WEBHOOK_SECRET', env.STRIPE_WEBHOOK_SECRET ? 'configured' : 'missing'],
-  ['ALIYUN_OSS_BUCKET', env.ALIYUN_OSS_BUCKET ? 'configured' : 'missing'],
-  ['STORAGE_PROVIDER', env.STORAGE_PROVIDER || 'missing'],
-  ['ADMIN_PASSWORD', env.ADMIN_PASSWORD && env.ADMIN_PASSWORD !== 'admin123' ? 'configured' : 'unsafe'],
-  ['DEMO_AUTH_FALLBACK', env.VITE_API_BASE_URL ? 'disabled_by_api_base' : 'enabled_missing_api_base'],
+const unsafeAdminPassword = new Set(['', 'admin123']);
+
+const requiredScripts = [
+  'build:web',
+  'build:admin',
+  'build:api',
+  'db:generate',
+  'db:push',
+  'check:prod-readiness',
+];
+
+const envChecks = [
+  ['DATABASE_URL', Boolean(env.DATABASE_URL)],
+  ['JWT_SECRET', Boolean(env.JWT_SECRET) && !unsafeJwt.has(env.JWT_SECRET)],
+  ['CORS_ORIGINS', Boolean(env.CORS_ORIGINS)],
+  ['ADMIN_PASSWORD', Boolean(env.ADMIN_PASSWORD) && !unsafeAdminPassword.has(env.ADMIN_PASSWORD)],
+  ['STRIPE_SECRET_KEY', Boolean(env.STRIPE_SECRET_KEY)],
+  ['STRIPE_WEBHOOK_SECRET', Boolean(env.STRIPE_WEBHOOK_SECRET)],
+  ['PAYPAL_CLIENT_ID', Boolean(env.PAYPAL_CLIENT_ID)],
+  ['PAYPAL_CLIENT_SECRET', Boolean(env.PAYPAL_CLIENT_SECRET)],
+  ['ALIYUN_OSS_BUCKET', Boolean(env.ALIYUN_OSS_BUCKET)],
+  ['ALIYUN_ACCESS_KEY_SECRET', Boolean(env.ALIYUN_ACCESS_KEY_SECRET)],
+  ['VITE_API_BASE_URL', Boolean(env.VITE_API_BASE_URL)],
 ];
 
 let hasHardFailure = false;
-for (const [key, status] of checks) {
+
+for (const scriptName of requiredScripts) {
+  const status = scripts[scriptName] ? 'configured' : 'missing';
+  console.log(`[chengying] npm script ${scriptName}: ${status}`);
+  if (!scripts[scriptName]) hasHardFailure = true;
+}
+
+for (const [key, ok] of envChecks) {
+  const status = ok ? 'configured' : key === 'JWT_SECRET' || key === 'ADMIN_PASSWORD' ? 'unsafe_or_missing' : 'missing';
   console.log(`[chengying] ${key}: ${status}`);
-  if (key === 'JWT_SECRET' && status === 'unsafe') hasHardFailure = true;
+  if (key === 'JWT_SECRET' && !ok) hasHardFailure = true;
+}
+
+if ((env.NODE_ENV || '') === 'production') {
+  const missingProductionKeys = envChecks.filter(([, ok]) => !ok).map(([key]) => key);
+  if (missingProductionKeys.length) {
+    hasHardFailure = true;
+    console.error(`[chengying] Production readiness failed. Missing or unsafe: ${missingProductionKeys.join(', ')}`);
+  }
 }
 
 if (hasHardFailure) {
-  console.error('[chengying] Production readiness failed: JWT_SECRET is unsafe.');
   process.exitCode = 1;
 } else {
   console.log('[chengying] Production readiness check finished.');

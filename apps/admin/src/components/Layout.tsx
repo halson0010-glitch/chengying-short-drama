@@ -13,6 +13,9 @@ const navItems = [
   { to: '/analytics/search-keywords', label: '搜索词统计' },
   { to: '/analytics/drama-clicks', label: '点击排行' },
   { to: '/analytics/play-funnel', label: '播放漏斗' },
+  { to: '/analytics/retention', label: '观看留存' },
+  { to: '/analytics/paywall', label: '付费弹窗分析' },
+  { to: '/analytics/ranking', label: '排行榜分析' },
 ];
 
 export default function Layout() {

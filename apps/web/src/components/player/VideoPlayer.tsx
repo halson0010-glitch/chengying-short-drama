@@ -2,12 +2,22 @@ import { useEffect, useRef, useState } from 'react';
 import Hls from 'hls.js';
 import { track } from '../../lib/analytics';
 import { getDramaHeroBackground, getDramaPosterImage } from '../../lib/hero';
+import {
+  formatPlaybackRate,
+  playbackRates,
+  readPlaybackRate,
+  writePlaybackRate,
+  type PlaybackRate,
+} from '../../lib/playerPreferences';
 import type { Drama, DramaEpisode } from '../../types/drama';
-import { FullscreenIcon, PlayIcon, VolumeIcon } from '../common/Icons';
+import { FullscreenIcon, PauseIcon, PlayIcon, VolumeIcon } from '../common/Icons';
 
 type VideoPlayerProps = {
   drama: Drama;
   episode: DramaEpisode;
+  onComplete?: () => void;
+  onProgress?: (state: { currentTime: number; duration: number; progress: number }) => void;
+  autoplayNextEnabled?: boolean;
 };
 
 function formatTime(seconds: number) {
@@ -17,15 +27,16 @@ function formatTime(seconds: number) {
   return `${String(minutes).padStart(2, '0')}:${String(remainder).padStart(2, '0')}`;
 }
 
-export default function VideoPlayer({ drama, episode }: VideoPlayerProps) {
+export default function VideoPlayer({ drama, episode, onComplete, onProgress }: VideoPlayerProps) {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const startedRef = useRef(false);
-  const progressMarksRef = useRef<Set<number>>(new Set());
+  const completedRef = useRef(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(episode.duration ?? 0);
   const [volume, setVolume] = useState(1);
+  const [playbackRate, setPlaybackRate] = useState<PlaybackRate>(() => readPlaybackRate());
   const [loadError, setLoadError] = useState('');
   const source = episode.videoUrl ?? episode.hlsUrl;
   const poster = getDramaPosterImage(drama) ?? getDramaHeroBackground(drama);
@@ -33,7 +44,7 @@ export default function VideoPlayer({ drama, episode }: VideoPlayerProps) {
   useEffect(() => {
     const video = videoRef.current;
     startedRef.current = false;
-    progressMarksRef.current = new Set();
+    completedRef.current = false;
     setIsPlaying(false);
     setCurrentTime(0);
     setDuration(episode.duration ?? 0);
@@ -76,6 +87,10 @@ export default function VideoPlayer({ drama, episode }: VideoPlayerProps) {
     return undefined;
   }, [drama.id, episode.episode, episode.duration, source]);
 
+  useEffect(() => {
+    if (videoRef.current) videoRef.current.playbackRate = playbackRate;
+  }, [playbackRate, source]);
+
   const playbackSource = episode.videoUrl ? 'html5-video' : 'hls-video';
   const payload = {
     dramaId: drama.id,
@@ -84,26 +99,15 @@ export default function VideoPlayer({ drama, episode }: VideoPlayerProps) {
     source: playbackSource,
   };
 
-  const trackProgress = (time: number, totalDuration: number) => {
-    if (!totalDuration || !Number.isFinite(totalDuration)) return;
-    const percent = (time / totalDuration) * 100;
-    [25, 50, 75].forEach((mark) => {
-      if (percent >= mark && !progressMarksRef.current.has(mark)) {
-        progressMarksRef.current.add(mark);
-        track('play_progress', {
-          dramaId: drama.id,
-          dramaTitle: drama.title,
-          episode: episode.episode,
-          progress: mark,
-          source: playbackSource,
-        });
-      }
-    });
-  };
-
-  const togglePlayback = async () => {
+  const togglePlayback = async (sourceName: string) => {
     const video = videoRef.current;
     if (!video) return;
+    track('play_button_click', {
+      dramaId: drama.id,
+      dramaTitle: drama.title,
+      episode: episode.episode,
+      source: sourceName,
+    });
     if (video.paused) {
       try {
         await video.play();
@@ -113,6 +117,20 @@ export default function VideoPlayer({ drama, episode }: VideoPlayerProps) {
     } else {
       video.pause();
     }
+  };
+
+  const changePlaybackRate = (rate: PlaybackRate) => {
+    if (rate === playbackRate) return;
+    setPlaybackRate(rate);
+    writePlaybackRate(rate);
+    if (videoRef.current) videoRef.current.playbackRate = rate;
+    track('play_rate_change', {
+      dramaId: drama.id,
+      dramaTitle: drama.title,
+      episode: episode.episode,
+      rate,
+      source: playbackSource,
+    });
   };
 
   const requestFullscreen = async () => {
@@ -141,7 +159,12 @@ export default function VideoPlayer({ drama, episode }: VideoPlayerProps) {
           const nextTime = event.currentTarget.currentTime;
           const nextDuration = event.currentTarget.duration || duration || episode.duration || 0;
           setCurrentTime(nextTime);
-          trackProgress(nextTime, nextDuration);
+          if (nextDuration) setDuration(nextDuration);
+          onProgress?.({
+            currentTime: nextTime,
+            duration: nextDuration,
+            progress: nextDuration ? Math.min(1, nextTime / nextDuration) : 0,
+          });
         }}
         onError={() => {
           setIsPlaying(false);
@@ -158,7 +181,10 @@ export default function VideoPlayer({ drama, episode }: VideoPlayerProps) {
         }}
         onEnded={() => {
           setIsPlaying(false);
+          if (completedRef.current) return;
+          completedRef.current = true;
           track('play_complete', payload);
+          onComplete?.();
         }}
       />
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/80" />
@@ -182,7 +208,7 @@ export default function VideoPlayer({ drama, episode }: VideoPlayerProps) {
       {!isPlaying && !loadError && (
         <button
           type="button"
-          onClick={togglePlayback}
+          onClick={() => void togglePlayback('watch-video-center')}
           data-track="play-button"
           data-drama-id={drama.id}
           data-source="watch-video"
@@ -210,7 +236,7 @@ export default function VideoPlayer({ drama, episode }: VideoPlayerProps) {
           <div className="flex items-center gap-3">
             <button
               type="button"
-              onClick={togglePlayback}
+              onClick={() => void togglePlayback('watch-video-controls')}
               data-track="play-button"
               data-drama-id={drama.id}
               data-source="watch-video-controls"
@@ -218,10 +244,7 @@ export default function VideoPlayer({ drama, episode }: VideoPlayerProps) {
               className="h-5 w-5"
             >
               {isPlaying ? (
-                <span className="flex justify-center gap-1">
-                  <span className="h-4 w-1 rounded-sm bg-white" />
-                  <span className="h-4 w-1 rounded-sm bg-white" />
-                </span>
+                <PauseIcon className="h-4 w-4" />
               ) : (
                 <PlayIcon className="h-4 w-4" />
               )}
@@ -256,6 +279,18 @@ export default function VideoPlayer({ drama, episode }: VideoPlayerProps) {
             />
           </div>
           <div className="flex items-center gap-3">
+            <select
+              aria-label="倍速"
+              value={playbackRate}
+              onChange={(event) => changePlaybackRate(Number(event.target.value) as PlaybackRate)}
+              className="rounded bg-white/10 px-2 py-1 text-xs text-white outline-none"
+            >
+              {playbackRates.map((rate) => (
+                <option key={rate} value={rate} className="bg-[#17171d]">
+                  {formatPlaybackRate(rate)}
+                </option>
+              ))}
+            </select>
             <button type="button" className="rounded bg-white/10 px-2 py-1">
               高清
             </button>

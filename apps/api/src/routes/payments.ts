@@ -95,8 +95,8 @@ paymentRouter.post('/stripe/checkout', paymentRateLimit, validateBody(checkoutSc
   const userId = getUserId(res);
   if (!userId) return res.status(401).json({ message: 'Unauthorized' });
 
-  const successUrl = req.body.successUrl || `${config.publicBaseUrl}/payment/success`;
-  const cancelUrl = req.body.cancelUrl || `${config.publicBaseUrl}/payment/cancel`;
+  const successUrl = req.body.successUrl || config.stripe.successUrl || `${config.publicWebBaseUrl}/payment/success`;
+  const cancelUrl = req.body.cancelUrl || config.stripe.cancelUrl || `${config.publicWebBaseUrl}/payment/cancel`;
   const payment = await prisma.paymentRecord.create({
     data: {
       userId,

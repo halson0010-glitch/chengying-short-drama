@@ -1,11 +1,21 @@
 import { useEffect, useRef, useState } from 'react';
 import { track } from '../../lib/analytics';
+import {
+  formatPlaybackRate,
+  playbackRates,
+  readPlaybackRate,
+  writePlaybackRate,
+  type PlaybackRate,
+} from '../../lib/playerPreferences';
 import type { Drama } from '../../types/drama';
-import { FullscreenIcon, PlayIcon, VolumeIcon } from '../common/Icons';
+import { FullscreenIcon, PauseIcon, PlayIcon, VolumeIcon } from '../common/Icons';
 
 type PlayerMockProps = {
   drama: Drama;
   episode: number;
+  onComplete?: () => void;
+  onProgress?: (state: { currentTime: number; duration: number; progress: number }) => void;
+  autoplayNextEnabled?: boolean;
 };
 
 const duration = 156;
@@ -16,43 +26,29 @@ function formatTime(seconds: number) {
   return `${String(minutes).padStart(2, '0')}:${String(remainder).padStart(2, '0')}`;
 }
 
-export default function PlayerMock({ drama, episode }: PlayerMockProps) {
+export default function PlayerMock({ drama, episode, onComplete, onProgress }: PlayerMockProps) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [progress, setProgress] = useState(18);
+  const [playbackRate, setPlaybackRate] = useState<PlaybackRate>(() => readPlaybackRate());
   const completedRef = useRef(false);
-  const progressMarksRef = useRef<Set<number>>(new Set());
 
   useEffect(() => {
     setIsPlaying(false);
     setProgress(18);
     completedRef.current = false;
-    progressMarksRef.current = new Set();
   }, [drama.id, episode]);
 
   useEffect(() => {
     if (!isPlaying) return undefined;
     const timer = window.setInterval(() => {
       setProgress((current) => {
-        return Math.min(duration, current + 1);
+        return Math.min(duration, current + playbackRate);
       });
     }, 1000);
     return () => window.clearInterval(timer);
-  }, [isPlaying]);
+  }, [isPlaying, playbackRate]);
 
   useEffect(() => {
-    [25, 50, 75].forEach((mark) => {
-      if ((progress / duration) * 100 >= mark && !progressMarksRef.current.has(mark)) {
-        progressMarksRef.current.add(mark);
-        track('play_progress', {
-          dramaId: drama.id,
-          dramaTitle: drama.title,
-          episode,
-          progress: mark,
-          source: 'mock-player',
-        });
-      }
-    });
-
     if (progress < duration || !isPlaying || completedRef.current) return;
     completedRef.current = true;
     setIsPlaying(false);
@@ -62,10 +58,21 @@ export default function PlayerMock({ drama, episode }: PlayerMockProps) {
       episode,
       source: 'mock-player',
     });
-  }, [drama.id, drama.title, episode, isPlaying, progress]);
+    onComplete?.();
+  }, [drama.id, drama.title, episode, isPlaying, onComplete, progress]);
+
+  useEffect(() => {
+    onProgress?.({ currentTime: progress, duration, progress: Math.min(1, progress / duration) });
+  }, [onProgress, progress]);
 
   const togglePlayback = (source: string) => {
     const nextPlaying = !isPlaying;
+    track('play_button_click', {
+      dramaId: drama.id,
+      dramaTitle: drama.title,
+      episode,
+      source,
+    });
     if (nextPlaying && progress >= duration) {
       setProgress(0);
       completedRef.current = false;
@@ -76,6 +83,19 @@ export default function PlayerMock({ drama, episode }: PlayerMockProps) {
       dramaTitle: drama.title,
       episode,
       source,
+    });
+  };
+
+  const changePlaybackRate = (rate: PlaybackRate) => {
+    if (rate === playbackRate) return;
+    setPlaybackRate(rate);
+    writePlaybackRate(rate);
+    track('play_rate_change', {
+      dramaId: drama.id,
+      dramaTitle: drama.title,
+      episode,
+      rate,
+      source: 'mock-player',
     });
   };
 
@@ -104,10 +124,7 @@ export default function PlayerMock({ drama, episode }: PlayerMockProps) {
         className="absolute left-1/2 top-1/2 flex h-20 w-20 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-accent text-white shadow-glow transition hover:scale-105 hover:brightness-110"
       >
         {isPlaying ? (
-          <span className="flex gap-2">
-            <span className="h-7 w-2 rounded-sm bg-white" />
-            <span className="h-7 w-2 rounded-sm bg-white" />
-          </span>
+          <PauseIcon className="h-8 w-8" />
         ) : (
           <PlayIcon className="ml-1 h-8 w-8" />
         )}
@@ -131,17 +148,30 @@ export default function PlayerMock({ drama, episode }: PlayerMockProps) {
               data-drama-id={drama.id}
               data-source="watch-controls"
               aria-label="切换播放状态"
+              className="h-5 w-5"
             >
-              <PlayIcon className="h-4 w-4" />
+              {isPlaying ? <PauseIcon className="h-4 w-4" /> : <PlayIcon className="h-4 w-4" />}
             </button>
             <span>
-              {formatTime(progress)} / {formatTime(duration)}
+              {formatTime(Math.floor(progress))} / {formatTime(duration)}
             </span>
             <button type="button" aria-label="音量">
               <VolumeIcon className="h-[18px] w-[18px]" />
             </button>
           </div>
           <div className="flex items-center gap-3">
+            <select
+              aria-label="倍速"
+              value={playbackRate}
+              onChange={(event) => changePlaybackRate(Number(event.target.value) as PlaybackRate)}
+              className="rounded bg-white/10 px-2 py-1 text-xs text-white outline-none"
+            >
+              {playbackRates.map((rate) => (
+                <option key={rate} value={rate} className="bg-[#17171d]">
+                  {formatPlaybackRate(rate)}
+                </option>
+              ))}
+            </select>
             <button type="button" className="rounded bg-white/10 px-2 py-1">
               高清
             </button>

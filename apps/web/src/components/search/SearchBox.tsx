@@ -31,6 +31,7 @@ export default function SearchBox({
   const [suggestions, setSuggestions] = useState<Drama[]>([]);
   const [suggestionsLoading, setSuggestionsLoading] = useState(false);
   const [recentSearches, setRecentSearches] = useState<string[]>(() => getRecentSearches());
+  const [suggestViewKey, setSuggestViewKey] = useState('');
 
   useEffect(() => {
     if (location.pathname === '/search') {
@@ -85,6 +86,19 @@ export default function SearchBox({
     };
   }, [debouncedValue]);
 
+  useEffect(() => {
+    if (!focused) return;
+    const key = `${variant}|${debouncedValue || 'empty'}|${suggestions.length}|${recentSearches.length}`;
+    if (key === suggestViewKey) return;
+    setSuggestViewKey(key);
+    track('search_suggest_view', {
+      keyword: debouncedValue,
+      suggestionCount: suggestions.length,
+      recentCount: recentSearches.length,
+      source: variant,
+    });
+  }, [debouncedValue, focused, recentSearches.length, suggestions.length, suggestViewKey, variant]);
+
   const submitSearch = (keyword: string = value, source: string = variant) => {
     const sanitized = sanitizeSearchKeyword(keyword);
     if (sanitized) setRecentSearches(saveRecentSearch(sanitized));
@@ -100,6 +114,13 @@ export default function SearchBox({
       dramaId: drama.id,
       dramaTitle: drama.title,
       position,
+    });
+    track('search_suggest_click', {
+      keyword: debouncedValue,
+      dramaId: drama.id,
+      dramaTitle: drama.title,
+      position,
+      source: variant,
     });
     navigate(`/detail/${drama.id}`);
     setFocused(false);
@@ -166,7 +187,10 @@ export default function SearchBox({
           loading={suggestionsLoading}
           onSelect={selectSuggestion}
           onHotSelect={(keyword) => submitSearch(keyword, `${variant}-hot`)}
-          onRecentSelect={(keyword) => submitSearch(keyword, `${variant}-recent`)}
+          onRecentSelect={(keyword) => {
+            track('search_recent_keyword_click', { keyword, source: `${variant}-suggest-panel` });
+            submitSearch(keyword, `${variant}-recent`);
+          }}
           onClearRecent={() => {
             clearRecentSearches();
             setRecentSearches([]);

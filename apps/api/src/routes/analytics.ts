@@ -45,6 +45,99 @@ function payloadToJson(payload: unknown) {
   return json.length > 10 * 1024 ? json.slice(0, 10 * 1024) : json;
 }
 
+const debugEvents = new Set(['hero_auto_switch', 'play_progress']);
+const searchSubmitDedupeWindowMs = 3_000;
+const highFrequencyEvents = new Set(['watch_progress_checkpoint', 'watch_duration_update', 'play_progress']);
+const highFrequencyDedupeWindowMs = 15_000;
+
+function sanitizeSearchKeywordValue(value: unknown) {
+  const keyword = sanitizeSensitiveText(String(value ?? '').trim().replace(/\s+/g, ' ')).slice(0, 60);
+  return keyword.includes('[redacted]') ? '' : keyword;
+}
+
+function payloadKeyword(payload: Record<string, unknown>) {
+  return sanitizeSearchKeywordValue(payload.keyword ?? payload.search_term ?? payload.searchTerm ?? payload.q);
+}
+
+function mergeViewportPayload(event: AnalyticsEvent) {
+  const payload = event.payload && typeof event.payload === 'object' ? { ...event.payload } : {};
+  const width = Number(event.viewport?.width);
+  const height = Number(event.viewport?.height);
+  if (Number.isFinite(width) && width > 0) payload.viewportWidth = Math.round(width);
+  if (Number.isFinite(height) && height > 0) payload.viewportHeight = Math.round(height);
+  return payload;
+}
+
+async function hasRecentSearchSubmitDuplicate(event: {
+  anonymousId: string | null;
+  sessionId: string | null;
+  createdAt: Date;
+  payloadJson: string | null;
+}) {
+  const payload = parsePayload(event.payloadJson);
+  const keyword = payloadKeyword(payload);
+  if (!keyword) return false;
+  const identityWhere = event.sessionId
+    ? { sessionId: event.sessionId }
+    : event.anonymousId
+      ? { anonymousId: event.anonymousId }
+      : null;
+  if (!identityWhere) return false;
+  const existing = await prisma.analyticsEvent.findMany({
+    where: {
+      event: 'search_submit',
+      ...identityWhere,
+      createdAt: {
+        gte: new Date(event.createdAt.getTime() - searchSubmitDedupeWindowMs),
+        lte: new Date(event.createdAt.getTime() + searchSubmitDedupeWindowMs),
+      },
+    },
+    select: { payloadJson: true },
+    take: 20,
+  });
+  return existing.some((item) => payloadKeyword(parsePayload(item.payloadJson)) === keyword);
+}
+
+async function hasRecentHighFrequencyDuplicate(event: {
+  event: string;
+  anonymousId: string | null;
+  sessionId: string | null;
+  createdAt: Date;
+  payloadJson: string | null;
+}) {
+  if (!highFrequencyEvents.has(event.event)) return false;
+  const payload = parsePayload(event.payloadJson);
+  const identityWhere = event.sessionId
+    ? { sessionId: event.sessionId }
+    : event.anonymousId
+      ? { anonymousId: event.anonymousId }
+      : null;
+  if (!identityWhere) return false;
+  const dramaId = String(payload.dramaId ?? '');
+  const episode = String(payload.episode ?? '');
+  const checkpoint = String(payload.checkpoint ?? payload.progress ?? '');
+  const existing = await prisma.analyticsEvent.findMany({
+    where: {
+      event: event.event,
+      ...identityWhere,
+      createdAt: {
+        gte: new Date(event.createdAt.getTime() - highFrequencyDedupeWindowMs),
+        lte: new Date(event.createdAt.getTime() + highFrequencyDedupeWindowMs),
+      },
+    },
+    select: { payloadJson: true },
+    take: 40,
+  });
+  return existing.some((item) => {
+    const itemPayload = parsePayload(item.payloadJson);
+    return (
+      String(itemPayload.dramaId ?? '') === dramaId &&
+      String(itemPayload.episode ?? '') === episode &&
+      String(itemPayload.checkpoint ?? itemPayload.progress ?? '') === checkpoint
+    );
+  });
+}
+
 function analyticsEventTime(event: DbAnalyticsEvent) {
   return event.createdAt.getTime();
 }
@@ -119,16 +212,54 @@ analyticsRouter.post(
   const events = Array.isArray(req.body?.events) ? (req.body.events as AnalyticsEvent[]) : [];
   if (!events.length) return res.json({ accepted: 0 });
 
-  const acceptedEvents = events.slice(0, 100).map((event) => ({
-    event: sanitizeSensitiveText(String(event.event ?? 'unknown')).slice(0, 80),
-    anonymousId: event.anonymousId ? sanitizeSensitiveText(event.anonymousId).slice(0, 120) : null,
-    sessionId: event.sessionId ? sanitizeSensitiveText(event.sessionId).slice(0, 120) : null,
-    path: event.path ? sanitizeSensitiveText(event.path).slice(0, 300) : null,
-    device: event.device ? sanitizeSensitiveText(String(event.device)).slice(0, 40) : null,
-    payloadJson: payloadToJson(event.payload ?? {}),
-    createdAt: safeEventDate(event.timestamp),
-  }));
+  const acceptedEvents = [];
+  const searchSubmitBatchKeys = new Map<string, number>();
+  const highFrequencyBatchKeys = new Map<string, number>();
+  for (const event of events.slice(0, 100)) {
+    const eventName = sanitizeSensitiveText(String(event.event ?? 'unknown')).slice(0, 80);
+    if (debugEvents.has(eventName)) continue;
+    const acceptedEvent = {
+      event: eventName,
+      anonymousId: event.anonymousId ? sanitizeSensitiveText(event.anonymousId).slice(0, 120) : null,
+      sessionId: event.sessionId ? sanitizeSensitiveText(event.sessionId).slice(0, 120) : null,
+      path: event.path ? sanitizeSensitiveText(event.path).slice(0, 300) : null,
+      device: event.device ? sanitizeSensitiveText(String(event.device)).slice(0, 40) : null,
+      payloadJson: payloadToJson(mergeViewportPayload(event)),
+      createdAt: safeEventDate(event.timestamp),
+    };
 
+    if (acceptedEvent.event === 'search_submit') {
+      const keyword = payloadKeyword(parsePayload(acceptedEvent.payloadJson));
+      const identity = acceptedEvent.sessionId || acceptedEvent.anonymousId || 'unknown';
+      const key = keyword ? `${identity}|${keyword}` : '';
+      const createdAtMs = acceptedEvent.createdAt.getTime();
+      const latest = key ? searchSubmitBatchKeys.get(key) : undefined;
+      if (latest !== undefined && Math.abs(createdAtMs - latest) <= searchSubmitDedupeWindowMs) continue;
+      if (key && (await hasRecentSearchSubmitDuplicate(acceptedEvent))) continue;
+      if (key) searchSubmitBatchKeys.set(key, createdAtMs);
+    }
+
+    if (highFrequencyEvents.has(acceptedEvent.event)) {
+      const payload = parsePayload(acceptedEvent.payloadJson);
+      const identity = acceptedEvent.sessionId || acceptedEvent.anonymousId || 'unknown';
+      const key = [
+        identity,
+        acceptedEvent.event,
+        payload.dramaId ? String(payload.dramaId) : '',
+        payload.episode ? String(payload.episode) : '',
+        payload.checkpoint ? String(payload.checkpoint) : payload.progress ? String(payload.progress) : '',
+      ].join('|');
+      const createdAtMs = acceptedEvent.createdAt.getTime();
+      const latest = highFrequencyBatchKeys.get(key);
+      if (latest !== undefined && Math.abs(createdAtMs - latest) <= highFrequencyDedupeWindowMs) continue;
+      if (await hasRecentHighFrequencyDuplicate(acceptedEvent)) continue;
+      highFrequencyBatchKeys.set(key, createdAtMs);
+    }
+
+    acceptedEvents.push(acceptedEvent);
+  }
+
+  if (!acceptedEvents.length) return res.json({ accepted: 0 });
   await prisma.analyticsEvent.createMany({ data: acceptedEvents });
   return res.json({ accepted: acceptedEvents.length });
 });

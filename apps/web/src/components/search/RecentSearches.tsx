@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { track } from '../../lib/analytics';
 
 type RecentSearchesProps = {
   keywords: string[];
@@ -21,6 +22,7 @@ export default function RecentSearches({ keywords, onClear }: RecentSearchesProp
           <Link
             key={keyword}
             to={`/search?q=${encodeURIComponent(keyword)}`}
+            onClick={() => track('search_recent_keyword_click', { keyword, source: 'search-page' })}
             className="rounded-full border border-white/[0.08] bg-white/[0.04] px-4 py-2 text-sm text-white/65 transition hover:border-accent/40 hover:text-white"
           >
             {keyword}
@@ -30,4 +32,3 @@ export default function RecentSearches({ keywords, onClear }: RecentSearchesProp
     </section>
   );
 }
-

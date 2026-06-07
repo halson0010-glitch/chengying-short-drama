@@ -41,6 +41,10 @@ function getOffset(input: unknown) {
   return Number.isFinite(value) ? Math.max(value, 0) : 0;
 }
 
+function getBooleanQuery(input: unknown) {
+  return input === 'true' || input === true || input === '1';
+}
+
 adminDashboardRouter.use(requireAdmin);
 
 adminDashboardRouter.get('/overview', async (req, res) => {
@@ -76,7 +80,12 @@ adminDashboardRouter.get('/filter-preferences', async (req, res) => {
 
 adminDashboardRouter.get('/recent-events', async (req, res) => {
   const selection = resolveDashboardDateSelection(req.query);
-  const result = await getDashboardRecentEvents(selection, getLimit(req.query.limit), getOffset(req.query.offset));
+  const result = await getDashboardRecentEvents(
+    selection,
+    getLimit(req.query.limit),
+    getOffset(req.query.offset),
+    getBooleanQuery(req.query.includeDebug),
+  );
   res.json({ range: selection.rangeLabel, ...result });
 });
 
@@ -93,12 +102,14 @@ adminDashboardRouter.get(
     const selection = resolveDashboardDateSelection(req.query);
     const limit = getLimit(req.query.limit);
     const offset = getOffset(req.query.offset);
+    const includeDebug = getBooleanQuery(req.query.includeDebug);
     const filename = makeCsvFilename(type, selection.rangeLabel, selection.startDate, selection.endDate);
 
     const csv =
       type === 'raw_events'
-        ? createCsv(await getRawEventsForExport(selection, limit, offset), [
+        ? createCsv(await getRawEventsForExport(selection, limit, offset, includeDebug), [
             'createdAt',
+            'createdAtUtc',
             'event',
             'path',
             'device',
@@ -108,6 +119,7 @@ adminDashboardRouter.get(
             'sessionIdHash',
             'dramaId',
             'dramaTitle',
+            'pageTitle',
             'episode',
             'keyword',
             'resultCount',

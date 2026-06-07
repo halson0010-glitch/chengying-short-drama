@@ -40,6 +40,16 @@ export type DashboardOverview = {
     searchSubmits: DashboardMetric;
     searchNoResults: DashboardMetric;
     downloadPopoverOpens: DashboardMetric;
+    rankingViews: DashboardMetric;
+    bottomNavClicks: DashboardMetric;
+    continueWatchClicks: DashboardMetric;
+    favoriteAdds: DashboardMetric;
+    lockedEpisodeClicks: DashboardMetric;
+    paywallViews: DashboardMetric;
+    paywallCtaClicks: DashboardMetric;
+    shareClicks: DashboardMetric;
+    watchProgressCheckpoints: DashboardMetric;
+    libraryViews: DashboardMetric;
   };
 };
 
@@ -89,6 +99,7 @@ export type DashboardRecentEvent = {
   device: string;
   payload: Record<string, unknown>;
   createdAt: string;
+  createdAtUtc?: string;
 };
 
 export type AdminPayment = {

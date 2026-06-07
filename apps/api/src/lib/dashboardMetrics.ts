@@ -45,6 +45,16 @@ export type DashboardOverview = {
     searchSubmits: DashboardMetric;
     searchNoResults: DashboardMetric;
     downloadPopoverOpens: DashboardMetric;
+    rankingViews: DashboardMetric;
+    bottomNavClicks: DashboardMetric;
+    continueWatchClicks: DashboardMetric;
+    favoriteAdds: DashboardMetric;
+    lockedEpisodeClicks: DashboardMetric;
+    paywallViews: DashboardMetric;
+    paywallCtaClicks: DashboardMetric;
+    shareClicks: DashboardMetric;
+    watchProgressCheckpoints: DashboardMetric;
+    libraryViews: DashboardMetric;
   };
 };
 
@@ -94,10 +104,12 @@ export type DashboardRecentEvent = {
   device: string;
   payload: unknown;
   createdAt: string;
+  createdAtUtc: string;
 };
 
 export type DashboardRawEvent = {
   createdAt: string;
+  createdAtUtc: string;
   event: string;
   path: string;
   device: string;
@@ -107,6 +119,7 @@ export type DashboardRawEvent = {
   sessionIdHash: string;
   dramaId: string;
   dramaTitle: string;
+  pageTitle: string;
   episode: string | number;
   keyword: string;
   resultCount: string | number;
@@ -127,6 +140,16 @@ const metricEventMap = {
   searchSubmits: 'search_submit',
   searchNoResults: 'search_no_result',
   downloadPopoverOpens: 'download_popover_open',
+  rankingViews: 'ranking_view',
+  bottomNavClicks: 'bottom_nav_click',
+  continueWatchClicks: 'continue_watch_click',
+  favoriteAdds: 'favorite_toggle',
+  lockedEpisodeClicks: 'episode_locked_click',
+  paywallViews: 'paywall_popup_view',
+  paywallCtaClicks: 'paywall_cta_click',
+  shareClicks: 'share_click',
+  watchProgressCheckpoints: 'watch_progress_checkpoint',
+  libraryViews: 'library_page_view',
 } as const;
 
 const funnelStepDefs = [
@@ -134,9 +157,27 @@ const funnelStepDefs = [
   { key: 'drama_card_click', label: '短剧点击' },
   { key: 'play_button_click', label: '播放点击' },
   { key: 'play_start', label: '播放开始' },
-  { key: 'play_progress_50', label: '播放 50%' },
   { key: 'play_complete', label: '完播' },
 ] as const;
+
+const DEBUG_EVENTS = new Set(['hero_auto_switch', 'play_progress']);
+const dashboardTimezone = process.env.DASHBOARD_TIMEZONE || 'Asia/Shanghai';
+const searchDedupeWindowMs = 3_000;
+
+export function formatDashboardDateTime(date: Date) {
+  const formatter = new Intl.DateTimeFormat('zh-CN', {
+    timeZone: dashboardTimezone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false,
+  });
+  const parts = Object.fromEntries(formatter.formatToParts(date).map((part) => [part.type, part.value]));
+  return `${parts.year}-${parts.month}-${parts.day} ${parts.hour}:${parts.minute}:${parts.second}`;
+}
 
 function startOfDay(date: Date) {
   const next = new Date(date);
@@ -251,9 +292,12 @@ function uniqueVisitors(events: Pick<DbAnalyticsEvent, 'anonymousId'>[]) {
   return new Set(events.map((item) => item.anonymousId).filter(Boolean)).size;
 }
 
-function isProgress50(event: DbAnalyticsEvent) {
-  const payload = safeParsePayload(event.payloadJson);
-  return event.event === 'play_progress' && Math.round(payloadNumber(payload, ['progress'])) === 50;
+function countFavoriteAdds(events: DbAnalyticsEvent[]) {
+  return events.filter((event) => {
+    if (event.event !== 'favorite_toggle') return false;
+    const payload = safeParsePayload(event.payloadJson);
+    return payload.collected !== false;
+  }).length;
 }
 
 export function sanitizeSearchKeyword(keyword: unknown) {
@@ -266,6 +310,36 @@ function getKeyword(event: DbAnalyticsEvent) {
   const keyword = sanitizeSearchKeyword(payloadText(payload, ['keyword', 'search_term', 'searchTerm', 'q']));
   if (!keyword || keyword.includes('[redacted]')) return '';
   return keyword;
+}
+
+function getEventIdentity(event: DbAnalyticsEvent) {
+  return event.sessionId || event.anonymousId || 'unknown';
+}
+
+function dedupeEvents<T extends DbAnalyticsEvent>(events: T[], keyForEvent: (event: T) => string, windowMs: number) {
+  const latestByKey = new Map<string, number>();
+  return [...events]
+    .sort((first, second) => first.createdAt.getTime() - second.createdAt.getTime())
+    .filter((event) => {
+      const key = keyForEvent(event);
+      if (!key) return false;
+      const timestamp = event.createdAt.getTime();
+      const latest = latestByKey.get(key);
+      if (latest !== undefined && timestamp - latest <= windowMs) return false;
+      latestByKey.set(key, timestamp);
+      return true;
+    });
+}
+
+function dedupeSearchSubmitEvents<T extends DbAnalyticsEvent>(events: T[]) {
+  return dedupeEvents(
+    events,
+    (event) => {
+      const keyword = getKeyword(event);
+      return keyword ? `${getEventIdentity(event)}|${keyword}` : '';
+    },
+    searchDedupeWindowMs,
+  );
 }
 
 function getDramaInfo(event: DbAnalyticsEvent) {
@@ -281,6 +355,38 @@ function getFilterInfo(event: DbAnalyticsEvent) {
   const filterValue = payloadText(payload, ['filterValue', 'filter_value']);
   if (!filterKey || !filterValue) return null;
   return { filterKey, filterValue };
+}
+
+function getStrictDramaInfo(event: DbAnalyticsEvent) {
+  const payload = safeParsePayload(event.payloadJson);
+  const dramaId = payloadText(payload, ['dramaId', 'drama_id']);
+  const dramaTitle = payloadText(payload, ['dramaTitle', 'drama_title']);
+  return { dramaId, dramaTitle };
+}
+
+function isSuspiciousDramaId(value: string) {
+  const id = value.trim();
+  if (!id) return true;
+  const lower = id.toLowerCase();
+  return (
+    lower === 'sample-dashboard' ||
+    lower === 'csv' ||
+    /^[=+\-@]/.test(id) ||
+    /^'[=+\-@]/.test(id)
+  );
+}
+
+function isSuspiciousDramaTitle(value: string) {
+  const title = value.trim();
+  if (!title) return false;
+  return (
+    /dashboard sample|csv sample|csv injection|injection/i.test(title) ||
+    /^橙影短剧\s+-/.test(title) ||
+    /^搜索\s+.+\s+-\s+橙影短剧$/.test(title) ||
+    /^分类浏览\s+-\s+橙影短剧$/.test(title) ||
+    /^[=+\-@]/.test(title) ||
+    /^'[=+\-@]/.test(title)
+  );
 }
 
 export async function getEventsInSelection(selection: DashboardDateSelection, events?: string[]) {
@@ -300,11 +406,9 @@ export async function getDashboardOverview(selection: DashboardDateSelection): P
   const [current, previous] = await Promise.all([
     prisma.analyticsEvent.findMany({
       where: { createdAt: { gte: selection.start, lt: selection.end }, event: { in: eventNames } },
-      select: { event: true, anonymousId: true },
     }),
     prisma.analyticsEvent.findMany({
       where: { createdAt: { gte: selection.previousStart, lt: selection.previousEnd }, event: { in: eventNames } },
-      select: { event: true, anonymousId: true },
     }),
   ]);
 
@@ -318,12 +422,28 @@ export async function getDashboardOverview(selection: DashboardDateSelection): P
       playButtonClicks: metric(countEvent(current, 'play_button_click'), countEvent(previous, 'play_button_click')),
       playStarts: metric(countEvent(current, 'play_start'), countEvent(previous, 'play_start')),
       playCompletes: metric(countEvent(current, 'play_complete'), countEvent(previous, 'play_complete')),
-      searchSubmits: metric(countEvent(current, 'search_submit'), countEvent(previous, 'search_submit')),
+      searchSubmits: metric(
+        dedupeSearchSubmitEvents(current.filter((event) => event.event === 'search_submit')).length,
+        dedupeSearchSubmitEvents(previous.filter((event) => event.event === 'search_submit')).length,
+      ),
       searchNoResults: metric(countEvent(current, 'search_no_result'), countEvent(previous, 'search_no_result')),
       downloadPopoverOpens: metric(
         countEvent(current, 'download_popover_open'),
         countEvent(previous, 'download_popover_open'),
       ),
+      rankingViews: metric(countEvent(current, 'ranking_view'), countEvent(previous, 'ranking_view')),
+      bottomNavClicks: metric(countEvent(current, 'bottom_nav_click'), countEvent(previous, 'bottom_nav_click')),
+      continueWatchClicks: metric(countEvent(current, 'continue_watch_click'), countEvent(previous, 'continue_watch_click')),
+      favoriteAdds: metric(countFavoriteAdds(current), countFavoriteAdds(previous)),
+      lockedEpisodeClicks: metric(countEvent(current, 'episode_locked_click'), countEvent(previous, 'episode_locked_click')),
+      paywallViews: metric(countEvent(current, 'paywall_popup_view'), countEvent(previous, 'paywall_popup_view')),
+      paywallCtaClicks: metric(countEvent(current, 'paywall_cta_click'), countEvent(previous, 'paywall_cta_click')),
+      shareClicks: metric(countEvent(current, 'share_click'), countEvent(previous, 'share_click')),
+      watchProgressCheckpoints: metric(
+        countEvent(current, 'watch_progress_checkpoint'),
+        countEvent(previous, 'watch_progress_checkpoint'),
+      ),
+      libraryViews: metric(countEvent(current, 'library_page_view'), countEvent(previous, 'library_page_view')),
     },
   };
 }
@@ -335,7 +455,11 @@ export async function getDashboardTrends(selection: DashboardDateSelection): Pro
     const key = dateKey(day);
     byDate.set(key, { date: key, page_view: 0, play_start: 0, search_submit: 0 });
   }
+  const dedupedSearchSubmitIds = new Set(
+    dedupeSearchSubmitEvents(items.filter((event) => event.event === 'search_submit')).map((event) => event.id),
+  );
   items.forEach((event) => {
+    if (event.event === 'search_submit' && !dedupedSearchSubmitIds.has(event.id)) return;
     const key = dateKey(event.createdAt);
     const row = byDate.get(key);
     if (row && (event.event === 'page_view' || event.event === 'play_start' || event.event === 'search_submit')) {
@@ -351,16 +475,11 @@ export async function getDashboardFunnel(selection: DashboardDateSelection): Pro
     'drama_card_click',
     'play_button_click',
     'play_start',
-    'play_progress',
     'play_complete',
   ]);
   const values = new Map<string, number>();
   funnelStepDefs.forEach((step) => values.set(step.key, 0));
   items.forEach((event) => {
-    if (event.event === 'play_progress') {
-      if (isProgress50(event)) values.set('play_progress_50', (values.get('play_progress_50') ?? 0) + 1);
-      return;
-    }
     if (values.has(event.event)) values.set(event.event, (values.get(event.event) ?? 0) + 1);
   });
   const firstValue = values.get('page_view') ?? 0;
@@ -381,6 +500,42 @@ export async function getDashboardTopDramas(selection: DashboardDateSelection): 
     'play_start',
     'play_complete',
   ]);
+  const dramas = await prisma.drama.findMany({ select: { id: true, title: true } });
+  const dramaById = new Map(dramas.map((drama) => [drama.id, drama]));
+  const dramaByTitle = new Map(dramas.map((drama) => [drama.title, drama]));
+  const filteredRows = new Map<string, DashboardTopDrama>();
+  items.forEach((event) => {
+    const { dramaId, dramaTitle } = getStrictDramaInfo(event);
+    if (dramaId && isSuspiciousDramaId(dramaId)) return;
+    if (dramaTitle && isSuspiciousDramaTitle(dramaTitle)) return;
+    const matchedDrama = (dramaId ? dramaById.get(dramaId) : undefined) || (dramaTitle ? dramaByTitle.get(dramaTitle) : undefined);
+    if (!matchedDrama) return;
+    const row = filteredRows.get(matchedDrama.id) ?? {
+      dramaId: matchedDrama.id,
+      dramaTitle: matchedDrama.title,
+      cardClicks: 0,
+      playButtonClicks: 0,
+      playStarts: 0,
+      playCompletes: 0,
+      completionRate: 0,
+    };
+    if (event.event === 'drama_card_click') row.cardClicks += 1;
+    if (event.event === 'play_button_click') row.playButtonClicks += 1;
+    if (event.event === 'play_start') row.playStarts += 1;
+    if (event.event === 'play_complete') row.playCompletes += 1;
+    filteredRows.set(matchedDrama.id, row);
+  });
+  return [...filteredRows.values()]
+    .map((row) => ({
+      ...row,
+      completionRate: row.playStarts ? roundPercent(Math.min((row.playCompletes / row.playStarts) * 100, 100)) : 0,
+    }))
+    .sort(
+      (first, second) =>
+        second.playStarts + second.playButtonClicks + second.cardClicks - (first.playStarts + first.playButtonClicks + first.cardClicks),
+    )
+    .slice(0, 10);
+
   const rows = new Map<string, DashboardTopDrama>();
   items.forEach((event) => {
     const { dramaId, dramaTitle } = getDramaInfo(event);
@@ -418,7 +573,11 @@ export async function getDashboardSearchKeywords(selection: DashboardDateSelecti
     string,
     { keyword: string; count: number; totalResultCount: number; resultCountSamples: number; noResultCount: number }
   >();
+  const dedupedSearchSubmitIds = new Set(
+    dedupeSearchSubmitEvents(items.filter((event) => event.event === 'search_submit')).map((event) => event.id),
+  );
   items.forEach((event) => {
+    if (event.event === 'search_submit' && !dedupedSearchSubmitIds.has(event.id)) return;
     const keyword = getKeyword(event);
     if (!keyword) return;
     const row = rows.get(keyword) ?? {
@@ -465,10 +624,13 @@ export async function getDashboardFilterPreferences(selection: DashboardDateSele
   return [...rows.values()].sort((first, second) => second.count - first.count).slice(0, 20);
 }
 
-export async function getDashboardRecentEvents(selection: DashboardDateSelection, limit = 50, offset = 0) {
+export async function getDashboardRecentEvents(selection: DashboardDateSelection, limit = 50, offset = 0, includeDebug = false) {
   const take = Math.min(Math.max(limit, 1), 100);
   const skip = Math.max(offset, 0);
-  const where = { createdAt: { gte: selection.start, lt: selection.end } };
+  const where: Prisma.AnalyticsEventWhereInput = {
+    createdAt: { gte: selection.start, lt: selection.end },
+    ...(includeDebug ? {} : { event: { notIn: [...DEBUG_EVENTS] } }),
+  };
   const [total, events] = await Promise.all([
     prisma.analyticsEvent.count({ where }),
     prisma.analyticsEvent.findMany({ where, orderBy: { createdAt: 'desc' }, take, skip }),
@@ -480,7 +642,8 @@ export async function getDashboardRecentEvents(selection: DashboardDateSelection
       path: event.path ? sanitizeSensitiveText(event.path).slice(0, 300) : '',
       device: event.device ? sanitizeSensitiveText(event.device).slice(0, 40) : '',
       payload: sanitizeDashboardPayload(safeParsePayload(event.payloadJson)),
-      createdAt: event.createdAt.toISOString(),
+      createdAt: formatDashboardDateTime(event.createdAt),
+      createdAtUtc: event.createdAt.toISOString(),
     })),
     total,
     limit: take,
@@ -501,10 +664,18 @@ function valueOrEmpty(value: number) {
   return value ? value : '';
 }
 
-export async function getRawEventsForExport(selection: DashboardDateSelection, limit = 10_000, offset = 0): Promise<DashboardRawEvent[]> {
+export async function getRawEventsForExport(
+  selection: DashboardDateSelection,
+  limit = 10_000,
+  offset = 0,
+  includeDebug = false,
+): Promise<DashboardRawEvent[]> {
   const take = Math.min(Math.max(limit, 1), 10_000);
   const skip = Math.max(offset, 0);
-  const where: Prisma.AnalyticsEventWhereInput = { createdAt: { gte: selection.start, lt: selection.end } };
+  const where: Prisma.AnalyticsEventWhereInput = {
+    createdAt: { gte: selection.start, lt: selection.end },
+    ...(includeDebug ? {} : { event: { notIn: [...DEBUG_EVENTS] } }),
+  };
   const events = await prisma.analyticsEvent.findMany({
     where,
     orderBy: { createdAt: 'desc' },
@@ -515,7 +686,8 @@ export async function getRawEventsForExport(selection: DashboardDateSelection, l
   return events.map((event) => {
     const payload = safeParsePayload(event.payloadJson);
     return {
-      createdAt: event.createdAt.toISOString(),
+      createdAt: formatDashboardDateTime(event.createdAt),
+      createdAtUtc: event.createdAt.toISOString(),
       event: sanitizeSensitiveText(event.event).slice(0, 80),
       path: event.path ? sanitizeSensitiveText(event.path).slice(0, 300) : '',
       device: event.device ? sanitizeSensitiveText(event.device).slice(0, 40) : '',
@@ -524,7 +696,8 @@ export async function getRawEventsForExport(selection: DashboardDateSelection, l
       anonymousIdHash: shortHash(event.anonymousId),
       sessionIdHash: shortHash(event.sessionId),
       dramaId: payloadText(payload, ['dramaId', 'drama_id']),
-      dramaTitle: payloadText(payload, ['dramaTitle', 'drama_title', 'title']),
+      dramaTitle: payloadText(payload, ['dramaTitle', 'drama_title']),
+      pageTitle: payloadText(payload, ['title', 'pageTitle', 'page_title']),
       episode: valueOrEmpty(payloadNumber(payload, ['episode'])),
       keyword: sanitizeSearchKeyword(payloadText(payload, ['keyword', 'search_term', 'searchTerm', 'q'])),
       resultCount: valueOrEmpty(payloadNumber(payload, ['resultCount', 'result_count'])),

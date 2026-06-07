@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { track } from '../../lib/analytics';
 
 const qrCells = [
@@ -17,31 +17,68 @@ const qrCells = [
 
 export default function DownloadPopover() {
   const [open, setOpen] = useState(false);
+  const [openTrigger, setOpenTrigger] = useState<'click' | 'hover' | ''>('');
+  const hoverTimerRef = useRef<number>();
+  const reportedOpenRef = useRef(false);
 
-  const showPopover = () => {
-    setOpen((visible) => {
-      if (!visible) track('download_popover_open', { source: 'header' });
-      return true;
-    });
+  useEffect(() => {
+    if (open && openTrigger && !reportedOpenRef.current) {
+      reportedOpenRef.current = true;
+      track('download_popover_open', { source: 'header', trigger: openTrigger });
+    }
+  }, [open, openTrigger]);
+
+  useEffect(() => {
+    return () => {
+      if (hoverTimerRef.current) window.clearTimeout(hoverTimerRef.current);
+    };
+  }, []);
+
+  const openPopover = (trigger: 'click' | 'hover') => {
+    setOpenTrigger(trigger);
+    setOpen(true);
+  };
+
+  const closePopover = () => {
+    if (hoverTimerRef.current) window.clearTimeout(hoverTimerRef.current);
+    hoverTimerRef.current = undefined;
+    reportedOpenRef.current = false;
+    setOpen(false);
+    setOpenTrigger('');
+  };
+
+  const scheduleHoverOpen = () => {
+    if (hoverTimerRef.current) window.clearTimeout(hoverTimerRef.current);
+    hoverTimerRef.current = window.setTimeout(() => {
+      openPopover('hover');
+      hoverTimerRef.current = undefined;
+    }, 300);
   };
 
   return (
     <div
       className="relative"
-      onMouseEnter={showPopover}
-      onMouseLeave={() => setOpen(false)}
+      onMouseEnter={scheduleHoverOpen}
+      onMouseLeave={closePopover}
     >
       <button
         type="button"
-        data-track="download-app"
         aria-expanded={open}
         aria-haspopup="dialog"
-        onClick={() =>
+        onClick={() => {
+          if (hoverTimerRef.current) window.clearTimeout(hoverTimerRef.current);
+          hoverTimerRef.current = undefined;
+          track('download_button_click', { source: 'header' });
           setOpen((visible) => {
-            if (!visible) track('download_popover_open', { source: 'header' });
-            return !visible;
-          })
-        }
+            if (visible) {
+              reportedOpenRef.current = false;
+              setOpenTrigger('');
+              return false;
+            }
+            setOpenTrigger('click');
+            return true;
+          });
+        }}
         className="h-10 whitespace-nowrap rounded-full border border-accent/40 bg-accent/10 px-4 text-sm font-medium text-[#ff7655] transition hover:bg-accent hover:text-white"
       >
         下载APP
